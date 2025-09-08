@@ -1,0 +1,17 @@
+dataset_from: "local"
+dataset_name: "address-dataset"
+text_col: "text"
+label_col: "label"
+train_file: "data/train.json"
+validation_file: "data/val.json"
+test_file: "data/test.json"
+test_split_percentage: null
+validation_split_percentage: null
+max_train_samples: null
+max_eval_samples: null
+max_test_samples: null
+shuffle: true
+overwrite_cache: true
+preprocessing_num_workers: 4
+data_cache_dir: null
+padding: "longest"

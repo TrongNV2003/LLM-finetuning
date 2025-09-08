@@ -1,0 +1,18 @@
+model_name_or_path: Qwen/Qwen3-0.6B
+padding_side: right
+model_max_length: 256
+cache_dir:
+revision:
+use_fast_tokenizer: true
+trust_remote_code: true
+pre_tokenize: false
+attn_implementation: flash_attention_2
+
+lora:
+  r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  bias: "none" # "all"
+  modules_to_save: ["score"] # embed_tokens
+
+qlora: true
