@@ -102,7 +102,6 @@ def evaluate_on_dataset(model, tokenizer, dataset_path: str, output_dir: str):
                 'exact_match': result.exact_match,
                 'bleu_score': result.bleu_score,
                 'rouge_l': result.rouge_l,
-                'bert_score': result.bert_score,
                 'semantic_similarity': result.semantic_similarity,
                 'num_samples': result.num_samples
             },

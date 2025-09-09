@@ -5,7 +5,7 @@ PROMPT_TEMPLATE = (
     "1. Thêm dấu tiếng Việt đầy đủ và chính xác.\n"
     "2. Sửa các lỗi chính tả phổ biến.\n"
     "3. Chuẩn hóa các từ viết tắt (ví dụ: 'Q.' thành 'Quận', 'TP.' thành 'Thành phố').\n"
-    "4. Giữ nguyên cấu trúc và các thành phần của địa chỉ gốc nếu chúng đã đúng.\n"
+    "4. Chỉ phản hồi địa chỉ hoàn thiện, ngoài ra không phản hồi hoặc giải thích thêm thông tin nào khác.\n"
     "---\n"
     "### Địa chỉ gốc:\n"
     "{text}\n\n"

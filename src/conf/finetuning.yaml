@@ -15,7 +15,6 @@ training_arguments:
   per_device_eval_batch_size: 64
   gradient_accumulation_steps: 1
   eval_accumulation_steps: 1
-  max_seq_length: 512
   packing: true
   dataset_text_field: "text"
   eval_strategy: "epoch"
@@ -37,19 +36,10 @@ training_arguments:
   overwrite_output_dir: true
   metric_for_best_model: "rouge_l"
   logging_strategy: steps
-  seed: 0
+  seed: 42
 
-lora:
-  lora_dropout: 0.05
-  r: 8
-  lora_alpha: 16
-  bias: "none" # "all"
-  modules_to_save: ["classifier"]
-
-qlora: true
-
-seed: 0
+seed: 42
 token: null
 logging:
   mlflow:
-    experiment_name: "finetuning"
+    experiment_name: "llm-finetuning"

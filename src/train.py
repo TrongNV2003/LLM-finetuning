@@ -35,7 +35,6 @@ from src.prompts import PROMPT_TEMPLATE
 
 load_dotenv()
 
-
 class Dataloader:
     def __init__(self, cfg: DictConfig):
         self.data_args = cfg.dataset
@@ -74,17 +73,23 @@ class LLMFinetuning:
     def __init__(self, cfg: DictConfig) -> None:
         self.prompt_template = PROMPT_TEMPLATE
         self.model_args = cfg.model
+        
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_args.model_name_or_path, use_fast=True)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-        
-        compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-        self.bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype=compute_dtype
-        )
+
+        logger.warning(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
+
+        self.compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+        if self.model_args.qlora:
+            bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_compute_dtype=self.compute_dtype
+            )
+        else:
+            bnb_config = None
         
         config = AutoConfig.from_pretrained(
             self.model_args.model_name_or_path,
@@ -103,9 +108,10 @@ class LLMFinetuning:
             token=cfg.token,
             cache_dir=self.model_args.cache_dir,
             revision=self.model_args.revision,
-            quantization_config=self.bnb_config,
+            quantization_config=bnb_config,
             device_map="auto",
             attn_implementation=self.model_args.attn_implementation,
+            torch_dtype=self.compute_dtype,
         )
 
         if self.model_args.lora is not None and self.model_args.lora != 'None':
@@ -116,23 +122,23 @@ class LLMFinetuning:
             if isinstance(modules_to_save, ListConfig):
                 modules_to_save = list(modules_to_save)
         
-        self.lora_config = LoraConfig(
-            r=self.model_args.lora.r,
-            lora_alpha=self.model_args.lora.lora_alpha,
-            target_modules=modules,
-            lora_dropout=self.model_args.lora.lora_dropout,
-            bias=self.model_args.lora.bias,
-            task_type=TaskType.CAUSAL_LM,
-        )
-        self.model = get_peft_model(self.model, self.lora_config)
+            lora_config = LoraConfig(
+                r=self.model_args.lora.r,
+                lora_alpha=self.model_args.lora.lora_alpha,
+                target_modules=modules,
+                lora_dropout=self.model_args.lora.lora_dropout,
+                bias=self.model_args.lora.bias,
+                task_type=TaskType.CAUSAL_LM,
+            )
+            self.model = get_peft_model(self.model, lora_config)
         
+            train_p, tot_p = self.model.get_nb_trainable_parameters()
+            logger.info(f"Model loaded: {self.model_args.model_name_or_path}")
+            logger.warning(f'Trainable parameters:      {train_p/1e6:.2f}M')
+            logger.warning(f'Total parameters:          {tot_p/1e6:.2f}M')
+            logger.warning(f'% of trainable parameters: {100*train_p/tot_p:.2f}%')
+            
         self.metrics = EvaluateMetrics()
-
-        train_p, tot_p = self.model.get_nb_trainable_parameters()
-        logger.info(f"Model loaded: {self.model_args.model_name_or_path}")
-        logger.warning(f'Trainable parameters:      {train_p/1e6:.2f}M')
-        logger.warning(f'Total parameters:          {tot_p/1e6:.2f}M')
-        logger.warning(f'% of trainable parameters: {100*train_p/tot_p:.2f}%')
     
     def train(
         self,
@@ -215,7 +221,6 @@ class LLMFinetuning:
                     'bleu_score': result.bleu_score,
                     'rouge_l': result.rouge_l,
                     'semantic_similarity': result.semantic_similarity,
-                    'bert_score': result.bert_score,
                     'num_samples': result.num_samples
                 },
                 'detailed_results': detailed_results
@@ -226,6 +231,8 @@ class LLMFinetuning:
         return result
     
     def predict(self, text: str) -> str:
+        # Ensure model is in evaluation mode
+        self.model.eval()
         prompt = self.prompt_template.format(text=text, label="")
         result = self._generate_text(
             prompt,
@@ -242,24 +249,26 @@ class LLMFinetuning:
         temperature: float = 0.7,
         do_sample: bool = True
     ) -> str:
-        inputs = self.tokenizer.encode(prompt, return_tensors="pt").to(self.model.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+        inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
         
         with torch.no_grad():
-            outputs = self.model.generate(
-                inputs,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                do_sample=do_sample,
-                pad_token_id=self.tokenizer.eos_token_id,
-                eos_token_id=self.tokenizer.eos_token_id
-            )
+            with torch.autocast(device_type='cuda', dtype=self.compute_dtype):
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    do_sample=do_sample,
+                    pad_token_id=self.tokenizer.eos_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id
+                )
         
-        generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        input_length = inputs["input_ids"].shape[1]
+        generated_tokens = outputs[0][input_length:]
         
-        prompt_length = len(prompt)
-        generated_part = generated_text[prompt_length:].strip()
+        generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
         
-        return generated_part
+        return generated_text.strip()
     
 
 @hydra.main(version_base=None, config_path="conf", config_name="finetuning")
@@ -301,10 +310,7 @@ def main(cfg: DictConfig):
         
         if test_dataset:
             logger.info("Evaluating model on test dataset...")
-            evaluation_result = trainer.evaluate(
-                test_dataset, 
-                output_dir=os.path.join(training_args.output_dir, "evaluation")
-            )
+            evaluation_result = trainer.evaluate(test_dataset)
             
             if evaluation_result:
                 mlflow.log_metrics({
@@ -312,23 +318,22 @@ def main(cfg: DictConfig):
                     "bleu_score": evaluation_result.bleu_score,
                     "rouge_l": evaluation_result.rouge_l,
                     "semantic_similarity": evaluation_result.semantic_similarity,
-                    "bert_score": evaluation_result.bert_score,
                 })
         
     
     # Test on sample addresses
-        logger.info("Testing on sample addresses...")
-        test_addresses = [
-            "68, Xthuy, Cgiay, HN",
-            "123, Ngtroi, Q1, HCM",
-            "45, Lthanh, Hkiem, HN"
-        ]
+        # logger.info("Testing on sample addresses...")
+        # test_addresses = [
+        #     "68, Xthuy, Cgiay, HN",
+        #     "123, Ngtroi, Q1, HCM",
+        #     "45, Lthanh, Hkiem, HN"
+        # ]
         
-        for address in test_addresses:
-            result = trainer.predict(address)
-            logger.info(f"Input: {address}")
-            logger.info(f"Output: {result}")
-            logger.info("-" * 50)
+        # for address in test_addresses:
+        #     result = trainer.predict(address)
+        #     logger.info(f"Input: {address}")
+        #     logger.info(f"Output: {result}")
+        #     logger.info("-" * 50)
 
 if __name__ == "__main__":
     main()
