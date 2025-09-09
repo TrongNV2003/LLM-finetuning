@@ -13,6 +13,6 @@ lora:
   lora_alpha: 16
   lora_dropout: 0.05
   bias: "none" # "all"
-  modules_to_save: ["score"] # embed_tokens
+  modules_to_save:
 
 qlora: true
