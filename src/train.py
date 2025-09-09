@@ -23,7 +23,7 @@ from transformers import (
     AutoModelForCausalLM,
     TrainingArguments,
     BitsAndBytesConfig,
-    set_seed
+    set_seed,
 )
 from trl import SFTTrainer, SFTConfig
 from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
@@ -32,15 +32,26 @@ from src.callbacks.time_callback import TimeLoggerCallback
 from src.callbacks.memory_callback import MemoryLoggerCallback
 from src.utils import find_all_linear_names, load_dataset
 from src.metrics import EvaluateMetrics, compute_metrics_fn
-from src.prompts import PROMPT_TEMPLATE
+from src.prompts import PROMPT_SYSTEM, PROMPT_TEMPLATE
 
 load_dotenv()
 
 class Dataloader:
     def __init__(self, cfg: DictConfig):
         self.data_args = cfg.dataset
-        self.prompt_template = PROMPT_TEMPLATE
-        
+        self.model_args = cfg.model
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_args.model_name_or_path,
+            use_fast=self.model_args.use_fast_tokenizer,
+            trust_remote_code=True,
+            cache_dir=self.model_args.cache_dir,
+            token=cfg.token,
+            revision=self.model_args.revision,
+            padding_side=self.model_args.padding_side,
+        )
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            
         self.raw_datasets = DatasetDict()
         
         if self.data_args.train_file:
@@ -59,10 +70,19 @@ class Dataloader:
                 self.raw_datasets["test"] = Dataset.from_list(test_data)
 
     def format_prompt(self, text: str, label: str = None) -> str:
-        if label:
-            return self.prompt_template.format(text=text, label=label)
-        else:
-            return self.prompt_template.format(text=text, label="")
+        prompt_str = PROMPT_TEMPLATE.format(text=text, label=label)
+        
+        messages = [
+            {"role": "system", "content": PROMPT_SYSTEM},
+            {"role": "user", "content": prompt_str}
+        ]
+            
+        return self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False
+        )
 
     def preprocess_fn(self, examples):
         processed_texts = []
@@ -128,9 +148,8 @@ class Dataloader:
 
 class LLMFinetuning:
     def __init__(self, cfg: DictConfig) -> None:
-        self.prompt_template = PROMPT_TEMPLATE
+        self.data_args = cfg.dataset
         self.model_args = cfg.model
-        
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_args.model_name_or_path,
             use_fast=self.model_args.use_fast_tokenizer,
@@ -232,32 +251,17 @@ class LLMFinetuning:
         
         return trainer
     
-    def evaluate(self, test_dataset: Dataset):
-        test_data = []
-        for item in test_dataset:
-            text = item['text']
-            if "### Địa chỉ hoàn thiện:" in text:
-                parts = text.split("### Địa chỉ hoàn thiện:")
-                if len(parts) == 2:
-                    input_section = parts[0]
-                    if "### Địa chỉ gốc:" in input_section:
-                        input_part = input_section.split("### Địa chỉ gốc:")[-1].strip()
-                    else:
-                        input_part = input_section.strip()
-                    
-                    reference = parts[1].strip()
-                    test_data.append({
-                        'input': input_part,
-                        'reference': reference
-                    })
+    def evaluate(self):
+        test_data_path = os.path.join(parent_dir, self.data_args.test_file)
+        test_data = load_dataset(test_data_path)
         
         predictions = []
         references = []
         inputs = []
         
         for item in test_data:
-            input_text = item['input']
-            reference = item['reference']
+            input_text = item['text']
+            reference = item['label']
             
             prediction = self.predict(input_text)
             
@@ -297,14 +301,26 @@ class LLMFinetuning:
     
     def predict(self, text: str) -> str:
         self.model.eval()
-        prompt = self.prompt_template.format(text=text, label="")
+        prompt_str = PROMPT_TEMPLATE.format(text=text, label="")
+        messages = [
+            {"role": "system", "content": PROMPT_SYSTEM},
+            {"role": "user", "content": prompt_str},
+        ]
+        
+        prompt = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False
+        )
+
         result = self._generate_text(
             prompt,
             max_new_tokens=50,
             temperature=0.7,
             top_p=0.8,
             top_k=20,
-            repetition_penalty=1.05,
+            repetition_penalty=1.2,
         )
         return result.strip()
 
@@ -382,7 +398,7 @@ def main(cfg: DictConfig):
         
         if test_dataset:
             logger.info("Evaluating model on test dataset...")
-            trainer.evaluate(test_dataset)
+            trainer.evaluate()
 
 
     # Test on sample addresses

@@ -1,3 +1,5 @@
+PROMPT_SYSTEM = """Bạn là một trợ lý AI chuyên chuẩn hóa địa chỉ tiếng Việt. Nhiệm vụ của bạn là chuẩn hóa địa chỉ được cung cấp. Luôn tuân thủ nghiêm ngặt các hướng dẫn."""
+
 PROMPT_TEMPLATE = (
     "### Role:\n"
     "Bạn là một trợ lý AI chuyên về chuẩn hóa địa chỉ ở Việt Nam. Nhiệm vụ của bạn là nhận một địa chỉ gốc có thể thiếu dấu, sai chính tả hoặc viết tắt, và trả về một địa chỉ hoàn thiện, đúng chuẩn.\n"

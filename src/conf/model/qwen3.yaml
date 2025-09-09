@@ -15,4 +15,4 @@ lora:
   bias: "none" # "all"
   modules_to_save:
 
-qlora: true
+qlora: false
