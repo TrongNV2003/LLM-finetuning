@@ -1,9 +1,7 @@
-import json
 import numpy as np
 from typing import List
 from loguru import logger
 from pyvi import ViTokenizer
-from bert_score import score
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
@@ -13,7 +11,7 @@ class EvaluationResult:
     exact_match: float
     bleu_score: float
     rouge_l: float
-    semantic_similarity: float
+    lexical_similarity: float
     num_samples: int
 
 
@@ -26,7 +24,7 @@ class EvaluateMetrics:
 
     def exact_match(self, predictions: List[str], references: List[str]) -> float:
         if len(predictions) != len(references):
-            raise ValueError("Predictions and references must have same length")
+            raise ValueError("Mismatched size of predictions and references")
         
         matches = sum(1 for pred, ref in zip(predictions, references) 
                      if pred.strip().lower() == ref.strip().lower())
@@ -50,25 +48,23 @@ class EvaluateMetrics:
         scores = []
         
         for pred, ref in zip(predictions, references):
-            pred_tokens = pred.lower().split()
-            ref_tokens = ref.lower().split()
+            pred_tokens = self._word_tokenize(pred.lower())
+            ref_tokens = self._word_tokenize(ref.lower())
             
-            if len(pred_tokens) == 0 or len(ref_tokens) == 0:
+            if not pred_tokens or not ref_tokens:
                 scores.append(0.0)
                 continue
             
             lcs_length = self._lcs_length(pred_tokens, ref_tokens)
             
-            if len(pred_tokens) > 0 and len(ref_tokens) > 0:
-                precision = lcs_length / len(pred_tokens)
-                recall = lcs_length / len(ref_tokens)
-                
-                if precision + recall > 0:
-                    f_score = 2 * precision * recall / (precision + recall)
-                else:
-                    f_score = 0.0
+            precision = lcs_length / len(pred_tokens)
+            recall = lcs_length / len(ref_tokens)
+            
+            if precision + recall > 0:
+                f_score = 2 * precision * recall / (precision + recall)
             else:
                 f_score = 0.0
+
             
             scores.append(f_score)
         
@@ -88,8 +84,8 @@ class EvaluateMetrics:
         
         return dp[m][n]
     
-    def semantic_similarity_score(self, predictions: List[str], references: List[str]) -> float:
-        """Calculate semantic similarity using string matching"""
+    def lexical_similarity_score(self, predictions: List[str], references: List[str]) -> float:
+        """Calculate lexical similarity using string matching"""
         scores = []
         
         for pred, ref in zip(predictions, references):
@@ -105,18 +101,17 @@ class EvaluateMetrics:
         exact_match = self.exact_match(predictions, references)
         bleu = self.bleu_score(predictions, references)
         rouge_l = self.rouge_l_score(predictions, references)
-        semantic_sim = self.semantic_similarity_score(predictions, references)
+        lexical_sim = self.lexical_similarity_score(predictions, references)
         
         return EvaluationResult(
             exact_match=exact_match,
             bleu_score=bleu,
             rouge_l=rouge_l,
-            semantic_similarity=semantic_sim,
+            lexical_similarity=lexical_sim,
             num_samples=len(predictions)
         )
     
     def print_evaluation_report(self, result: EvaluationResult, title: str = "Evaluation Results"):
-        """Print a formatted evaluation report"""
         print(f"\n{'='*60}")
         print(f"{title:^60}")
         print(f"{'='*60}")
@@ -124,7 +119,7 @@ class EvaluateMetrics:
         print(f"{'='*60}")
         
         print(f"Exact Match Accuracy:    {result.exact_match:.4f}")
-        print(f"Semantic Similarity:     {result.semantic_similarity:.4f}")
+        print(f"Lexical Similarity:     {result.lexical_similarity:.4f}")
         print(f"BLEU Score:              {result.bleu_score:.4f}")
         print(f"ROUGE-L Score:           {result.rouge_l:.4f}")
 
@@ -173,7 +168,7 @@ def compute_metrics_fn(tokenizer):
                 'exact_match': result.exact_match,
                 'bleu_score': result.bleu_score,
                 'rouge_l': result.rouge_l,
-                'semantic_similarity': result.semantic_similarity,
+                'lexical_similarity': result.lexical_similarity,
             }
             
         except Exception as e:
@@ -184,7 +179,7 @@ def compute_metrics_fn(tokenizer):
                 'exact_match': 0.0,
                 'bleu_score': 0.0,
                 'rouge_l': 0.0,
-                'semantic_similarity': 0.0,
+                'lexical_similarity': 0.0,
             }
     
     return compute_metrics

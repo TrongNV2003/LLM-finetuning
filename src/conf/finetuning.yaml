@@ -34,7 +34,7 @@ training_arguments:
   load_best_model_at_end: true
   torch_compile: false
   overwrite_output_dir: true
-  metric_for_best_model: "rouge_l"
+  metric_for_best_model: "eval_rouge_l"
   logging_strategy: steps
   seed: 42
 

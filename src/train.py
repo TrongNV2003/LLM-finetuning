@@ -1,6 +1,7 @@
 import os
 os.environ["HYDRA_FULL_ERROR"] = "1"
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
 import sys
@@ -13,8 +14,8 @@ import hydra
 import torch
 import mlflow
 from loguru import logger
-from datasets import Dataset
 from dotenv import load_dotenv
+from datasets import Dataset, DatasetDict
 from omegaconf import DictConfig, ListConfig
 from transformers import (
     AutoConfig,
@@ -39,9 +40,23 @@ class Dataloader:
     def __init__(self, cfg: DictConfig):
         self.data_args = cfg.dataset
         self.prompt_template = PROMPT_TEMPLATE
-        self.train_data = load_dataset(os.path.join(parent_dir, self.data_args.train_file))
-        self.val_data = load_dataset(os.path.join(parent_dir, self.data_args.validation_file))
-        self.test_data = load_dataset(os.path.join(parent_dir, self.data_args.test_file))
+        
+        self.raw_datasets = DatasetDict()
+        
+        if self.data_args.train_file:
+            train_data = load_dataset(os.path.join(parent_dir, self.data_args.train_file))
+            if train_data:
+                self.raw_datasets["train"] = Dataset.from_list(train_data)
+        
+        if self.data_args.validation_file:
+            val_data = load_dataset(os.path.join(parent_dir, self.data_args.validation_file))
+            if val_data:
+                self.raw_datasets["validation"] = Dataset.from_list(val_data)
+        
+        if self.data_args.test_file:
+            test_data = load_dataset(os.path.join(parent_dir, self.data_args.test_file))
+            if test_data:
+                self.raw_datasets["test"] = Dataset.from_list(test_data)
 
     def format_prompt(self, text: str, label: str = None) -> str:
         if label:
@@ -49,32 +64,82 @@ class Dataloader:
         else:
             return self.prompt_template.format(text=text, label="")
 
-    def get_dataset(self, split: str = "train") -> Dataset:
-        """Convert to HuggingFace Dataset format"""
-        if split == "train" and self.train_data:
-            data = self.train_data
-        elif split == "validation" and self.val_data:
-            data = self.val_data
-        elif split == "test" and self.test_data:
-            data = self.test_data
+    def preprocess_fn(self, examples):
+        processed_texts = []
+        for text, label in zip(examples[self.data_args.text_col], examples[self.data_args.label_col]):
+            formatted_text = self.format_prompt(text, label)
+            processed_texts.append(formatted_text)
+        return {"text": processed_texts}
+
+    def get_processed_datasets(self, training_args) -> DatasetDict:
+        remain_columns = ["text"]
+        
+        if "train" in self.raw_datasets:
+            column_names = self.raw_datasets["train"].column_names
+        elif "validation" in self.raw_datasets:
+            column_names = self.raw_datasets["validation"].column_names
+        elif "test" in self.raw_datasets:
+            column_names = self.raw_datasets["test"].column_names
         else:
-            logger.error(f"No data available for split: {split}")
-            return None
-            
-        formatted_data = []
+            raise ValueError("No datasets available for processing")
         
-        for item in data:
-            formatted_text = self.format_prompt(item[self.data_args.text_col], item[self.data_args.label_col])
-            formatted_data.append({"text": formatted_text})
-        
-        return Dataset.from_list(formatted_data)
+        with training_args.main_process_first(desc="dataset map pre-processing"):
+            datasets_tokenized = self.raw_datasets.map(
+                self.preprocess_fn,
+                batched=True,
+                remove_columns=list(set(column_names) - set(remain_columns)),
+                load_from_cache_file=not self.data_args.overwrite_cache,
+                num_proc=self.data_args.preprocessing_num_workers,
+                desc="Format dataset with prompts",
+            )
+
+        if training_args.do_train:
+            if "train" not in datasets_tokenized:
+                raise ValueError("--do_train requires a train dataset")
+            train_dataset = datasets_tokenized["train"]
+            if self.data_args.shuffle:
+                train_dataset = train_dataset.shuffle(seed=training_args.seed)
+            if self.data_args.max_train_samples is not None:
+                max_train_samples = min(len(train_dataset), self.data_args.max_train_samples)
+                train_dataset = train_dataset.select(range(max_train_samples))
+            datasets_tokenized["train"] = train_dataset
+
+        if training_args.do_eval:
+            if "validation" not in datasets_tokenized:
+                if "test" not in datasets_tokenized:
+                    raise ValueError("--do_eval requires a validation dataset")
+                else:
+                    logger.warning("--do_eval requires a validation dataset, using test dataset instead")
+                    eval_dataset = datasets_tokenized["test"]
+            else:
+                eval_dataset = datasets_tokenized["validation"]
+
+            if self.data_args.max_eval_samples is not None:
+                max_eval_samples = min(len(eval_dataset), self.data_args.max_eval_samples)
+                eval_dataset = eval_dataset.select(range(max_eval_samples))
+            datasets_tokenized["validation"] = eval_dataset
+
+        if "test" in datasets_tokenized and self.data_args.max_test_samples is not None:
+            max_test_samples = min(len(datasets_tokenized["test"]), self.data_args.max_test_samples)
+            datasets_tokenized["test"] = datasets_tokenized["test"].select(range(max_test_samples))
+
+        return datasets_tokenized
+
 
 class LLMFinetuning:
     def __init__(self, cfg: DictConfig) -> None:
         self.prompt_template = PROMPT_TEMPLATE
         self.model_args = cfg.model
         
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_args.model_name_or_path, use_fast=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.model_args.model_name_or_path,
+            use_fast=self.model_args.use_fast_tokenizer,
+            trust_remote_code=True,
+            cache_dir=self.model_args.cache_dir,
+            token=cfg.token,
+            revision=self.model_args.revision,
+            padding_side=self.model_args.padding_side,
+        )
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -220,7 +285,7 @@ class LLMFinetuning:
                     'exact_match': result.exact_match,
                     'bleu_score': result.bleu_score,
                     'rouge_l': result.rouge_l,
-                    'semantic_similarity': result.semantic_similarity,
+                    'lexical_similarity': result.lexical_similarity,
                     'num_samples': result.num_samples
                 },
                 'detailed_results': detailed_results
@@ -231,14 +296,15 @@ class LLMFinetuning:
         return result
     
     def predict(self, text: str) -> str:
-        # Ensure model is in evaluation mode
         self.model.eval()
         prompt = self.prompt_template.format(text=text, label="")
         result = self._generate_text(
             prompt,
             max_new_tokens=50,
             temperature=0.7,
-            do_sample=True
+            top_p=0.8,
+            top_k=20,
+            repetition_penalty=1.05,
         )
         return result.strip()
 
@@ -247,7 +313,9 @@ class LLMFinetuning:
         prompt: str,
         max_new_tokens: int = 100,
         temperature: float = 0.7,
-        do_sample: bool = True
+        top_p: float = 0.8,
+        top_k: int = 20,
+        repetition_penalty: float = 1.05,
     ) -> str:
         inputs = self.tokenizer(prompt, return_tensors="pt")
         inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
@@ -258,9 +326,11 @@ class LLMFinetuning:
                     **inputs,
                     max_new_tokens=max_new_tokens,
                     temperature=temperature,
-                    do_sample=do_sample,
+                    top_p=top_p,
+                    top_k=top_k,
+                    repetition_penalty=repetition_penalty,
                     pad_token_id=self.tokenizer.eos_token_id,
-                    eos_token_id=self.tokenizer.eos_token_id
+                    eos_token_id=self.tokenizer.eos_token_id,
                 )
         
         input_length = inputs["input_ids"].shape[1]
@@ -289,18 +359,20 @@ def main(cfg: DictConfig):
         
     with mlflow.start_run(run_name="finetuning"):
         dataloader = Dataloader(cfg)
-        
-        train_dataset = dataloader.get_dataset("train")
-        val_dataset = dataloader.get_dataset("validation")
-        test_dataset = dataloader.get_dataset("test")
-        
-        if train_dataset is None:
-            logger.error("No training data available.")
-            return
-        
         trainer = LLMFinetuning(cfg=cfg)
-
         training_args = SFTConfig(**cfg.training_arguments)
+        training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
+        
+        datasets_processed = dataloader.get_processed_datasets(training_args)
+        train_dataset = datasets_processed.get("train")
+        val_dataset = datasets_processed.get("validation")
+        test_dataset = datasets_processed.get("test")
+        
+        logger.info(f"Train dataset size: {len(train_dataset)}")
+        if val_dataset:
+            logger.info(f"Validation dataset size: {len(val_dataset)}")
+        if test_dataset:
+            logger.info(f"Test dataset size: {len(test_dataset)}")
         
         trainer.train(
             train_dataset=train_dataset,
@@ -310,17 +382,9 @@ def main(cfg: DictConfig):
         
         if test_dataset:
             logger.info("Evaluating model on test dataset...")
-            evaluation_result = trainer.evaluate(test_dataset)
-            
-            if evaluation_result:
-                mlflow.log_metrics({
-                    "exact_match": evaluation_result.exact_match,
-                    "bleu_score": evaluation_result.bleu_score,
-                    "rouge_l": evaluation_result.rouge_l,
-                    "semantic_similarity": evaluation_result.semantic_similarity,
-                })
-        
-    
+            trainer.evaluate(test_dataset)
+
+
     # Test on sample addresses
         # logger.info("Testing on sample addresses...")
         # test_addresses = [
