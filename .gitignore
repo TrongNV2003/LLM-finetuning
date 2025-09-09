@@ -7,6 +7,10 @@ nice_output
 config.yaml
 _debugger.py
 finetuning-checkpoints/
+mlruns/
+outputs/
+logs/
+*.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
