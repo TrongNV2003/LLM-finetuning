@@ -1,4 +1,8 @@
 import os
+os.environ["HYDRA_FULL_ERROR"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
@@ -20,7 +24,7 @@ from transformers import (
     BitsAndBytesConfig,
     set_seed
 )
-from trl import SFTTrainer
+from trl import SFTTrainer, SFTConfig
 from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
 
 from src.callbacks.time_callback import TimeLoggerCallback
@@ -84,12 +88,13 @@ class LLMFinetuning:
         
         config = AutoConfig.from_pretrained(
             self.model_args.model_name_or_path,
-            pad_token_id=self.tokenizer.pad_token or self.tokenizer.eos_token,
+            pad_token_id=self.tokenizer.pad_token_id,
             trust_remote_code=self.model_args.trust_remote_code,
             cache_dir=self.model_args.cache_dir,
             revision=self.model_args.revision,
             token=cfg.token,
         )
+        config.deterministic_flash_attention = True
         
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_args.model_name_or_path,
@@ -139,16 +144,13 @@ class LLMFinetuning:
         compute_metrics = None
         if eval_dataset is not None:
             compute_metrics = compute_metrics_fn(self.tokenizer)
-        
+
         trainer = SFTTrainer(
             model=self.model,
             args=training_args,
+            processing_class=self.tokenizer,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
-            tokenizer=self.tokenizer,
-            max_seq_length=self.model_args.model_max_length,
-            dataset_text_field="text",
-            packing=False,
             callbacks=[MemoryLoggerCallback(), TimeLoggerCallback()],
             compute_metrics=compute_metrics,
         )
@@ -289,7 +291,7 @@ def main(cfg: DictConfig):
         
         trainer = LLMFinetuning(cfg=cfg)
 
-        training_args = TrainingArguments(**cfg.training_arguments)
+        training_args = SFTConfig(**cfg.training_arguments)
         
         trainer.train(
             train_dataset=train_dataset,
