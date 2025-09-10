@@ -6,5 +6,373 @@
   {
     "text": "22, Dienbien, Badinh, HN",
     "label": "22, Điện Biên Phủ, Ba Đình, Hà Nội"
+  },
+  {
+    "text": "100 nguyen van thoai, p my an, q ngu hanh son, da nang",
+    "label": "100, Nguyễn Văn Thoại, Phường Mỹ An, Quận Ngũ Hành Sơn, Đà Nẵng"
+  },
+  {
+    "text": "kcn an don, p an hai bac, son tra, dn",
+    "label": "Khu công nghiệp An Đồn, Phường An Hải Bắc, Quận Sơn Trà, Đà Nẵng"
+  },
+  {
+    "text": "1a yet kieu, p tho quang, q.son tra",
+    "label": "1A, Yết Kiêu, Phường Thọ Quang, Quận Sơn Trà, Đà Nẵng"
+  },
+  {
+    "text": "gan san van dong hoa xuan, p hoa xuan, q cam le",
+    "label": "Gần Sân vận động Hòa Xuân, Phường Hòa Xuân, Quận Cẩm Lệ, Đà Nẵng"
+  },
+  {
+    "text": "khom 1, p1, tp sa dec, dong thap",
+    "label": "Khóm 1, Phường 1, Thành phố Sa Đéc, Tỉnh Đồng Tháp"
+  },
+  {
+    "text": "lang hoa sa dec, duong hoa, tan quy dong, sa dec",
+    "label": "Làng hoa Sa Đéc, Đường Hoa, Phường Tân Quy Đông, Thành phố Sa Đéc, Tỉnh Đồng Tháp"
+  },
+  {
+    "text": "180 tran hung dao, p.my binh, tp.long xuyen, an giang",
+    "label": "180, Trần Hưng Đạo, Phường Mỹ Bình, Thành phố Long Xuyên, Tỉnh An Giang"
+  },
+  {
+    "text": "cho long xuyen, p my long, long xuyen",
+    "label": "Chợ Long Xuyên, Phường Mỹ Long, Thành phố Long Xuyên, Tỉnh An Giang"
+  },
+  {
+    "text": "nui sam, p nui sam, tp chau doc, an giang",
+    "label": "Núi Sam, Phường Núi Sam, Thành phố Châu Đốc, Tỉnh An Giang"
+  },
+  {
+    "text": "khu dan cu van phat, p.cai khe, q.ninh kieu, can tho",
+    "label": "Khu dân cư Vạn Phát, Phường Cái Khế, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "ap my phuoc, xa my khanh, h.phong dien, tp.can tho",
+    "label": "Ấp Mỹ Phước, Xã Mỹ Khánh, Huyện Phong Điền, Thành phố Cần Thơ"
+  },
+  {
+    "text": "truong dai hoc y duoc can tho, 179 nguyen van cu",
+    "label": "Trường Đại học Y Dược Cần Thơ, 179, Nguyễn Văn Cừ, Phường An Khánh, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "102/5e duong le binh, p hung loi, ninh kieu",
+    "label": "102/5E, Đường Lê Bình, Phường Hưng Lợi, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "benh vien da khoa trung uong can tho",
+    "label": "Bệnh viện Đa khoa Trung ương Cần Thơ, 315, Nguyễn Văn Linh, Phường An Khánh, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "198 nguyen thi minh khai, p.xuan khanh, ninh kieu",
+    "label": "198, Nguyễn Thị Minh Khai, Phường Xuân Khánh, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "2 vo van tan, p tan an, q.ninh kieu, can tho",
+    "label": "2, Võ Văn Tần, Phường Tân An, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "9A pham ngoc thach, cai khe, nk, ct",
+    "label": "9A, Phạm Ngọc Thạch, Phường Cái Khế, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "duong nguyen van cu noi dai, p.an binh",
+    "label": "Đường Nguyễn Văn Cừ nối dài, Phường An Bình, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "kdc hung phu 1, p.hung phu, q.cai rang",
+    "label": "Khu dân cư Hưng Phú 1, Phường Hưng Phú, Quận Cái Răng, Cần Thơ"
+  },
+  {
+    "text": "cau can tho, hung phu, cai rang",
+    "label": "Cầu Cần Thơ, Phường Hưng Phú, Quận Cái Răng, Cần Thơ"
+  },
+  {
+    "text": "186 huyng cuong, an cu, ninh kieu",
+    "label": "186, Huỳnh Cương, Phường An Cư, Quận Ninh Kiều, Cần Thơ"
+  },
+  {
+    "text": "12 le loi, tp.quy nhon, binh dinh",
+    "label": "12, Lê Lợi, Thành phố Quy Nhơn, Tỉnh Bình Định"
+  },
+  {
+    "text": "eo gio, xa nhon ly, tp quy nhon",
+    "label": "Eo Gió, Xã Nhơn Lý, Thành phố Quy Nhơn, Tỉnh Bình Định"
+  },
+  {
+    "text": "khu du lich ky co, nhon ly, quynhon",
+    "label": "Khu du lịch Kỳ Co, Xã Nhơn Lý, Thành phố Quy Nhơn, Tỉnh Bình Định"
+  },
+  {
+    "text": "1 an duong vuong, p nguyen van cu, tp.quy nhon",
+    "label": "1, An Dương Vương, Phường Nguyễn Văn Cừ, Thành phố Quy Nhơn, Tỉnh Bình Định"
+  },
+  {
+    "text": "thap doi, p.dong da, quy nhon",
+    "label": "Tháp Đôi, Phường Đống Đa, Thành phố Quy Nhơn, Tỉnh Bình Định"
+  },
+  {
+    "text": "50 nguyen hue, tp.dong ha, quang tri",
+    "label": "50, Nguyễn Huệ, Thành phố Đông Hà, Tỉnh Quảng Trị"
+  },
+  {
+    "text": "cau hien luong - song ben hai, h.vinh linh, quang tri",
+    "label": "Cầu Hiền Lương - Sông Bến Hải, Huyện Vĩnh Linh, Tỉnh Quảng Trị"
+  },
+  {
+    "text": "so cu 20, so moi 45, duong le thanh ton, p.phu hoi, tp.hue",
+    "label": "45, Lê Thánh Tôn, Phường Phú Hội, Thành phố Huế, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "18 kiet 25 hung vuong, phu hoi, hue",
+    "label": "18, Kiệt 25, Hùng Vương, Phường Phú Hội, Thành phố Huế, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "lang co, h.phu loc, thua thien hue",
+    "label": "Vịnh Lăng Cô, Huyện Phú Lộc, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "chua thien mu, doi ha khe, huong long, hue",
+    "label": "Chùa Thiên Mụ, Đồi Hà Khê, Phường Hương Long, Thành phố Huế, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "khach san saigon morin, 30 le loi, hue",
+    "label": "Khách sạn Saigon Morin, 30, Lê Lợi, Phường Phú Hội, Thành phố Huế, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "cho dong ba, tran hung dao, tp.hue",
+    "label": "Chợ Đông Ba, Đường Trần Hưng Đạo, Thành phố Huế, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "khu pho 2, p.phu thuy, tp.phan thiet, binh thuan",
+    "label": "Khu phố 2, Phường Phú Thủy, Thành phố Phan Thiết, Tỉnh Bình Thuận"
+  },
+  {
+    "text": "mui ne, phan thiet, binh thuan",
+    "label": "Mũi Né, Thành phố Phan Thiết, Tỉnh Bình Thuận"
+  },
+  {
+    "text": "1 nguyen tat thanh, p.hung long, phan thiet",
+    "label": "1, Nguyễn Tất Thành, Phường Hưng Long, Thành phố Phan Thiết, Tỉnh Bình Thuận"
+  },
+  {
+    "text": "doi cat trang, hoa thang, bac binh, binh thuan",
+    "label": "Đồi cát trắng, Xã Hòa Thắng, Huyện Bắc Bình, Tỉnh Bình Thuận"
+  },
+  {
+    "text": "thap po sah inu, phu hai, phan thiet",
+    "label": "Tháp Po Sah Inư, Phường Phú Hài, Thành phố Phan Thiết, Tỉnh Bình Thuận"
+  },
+  {
+    "text": "40 duong 16/4, p.my binh, tp.phan rang-thap cham, ninh thuan",
+    "label": "40, Đường 16 tháng 4, Phường Mỹ Bình, Thành phố Phan Rang-Tháp Chàm, Tỉnh Ninh Thuận"
+  },
+  {
+    "text": "vinh vinh hy, xa vinh hai, h.ninh hai, ninh thuan",
+    "label": "Vịnh Vĩnh Hy, Xã Vĩnh Hải, Huyện Ninh Hải, Tỉnh Ninh Thuận"
+  },
+  {
+    "text": "hang rai, vinh hai, ninh hai",
+    "label": "Hang Rái, Xã Vĩnh Hải, Huyện Ninh Hải, Tỉnh Ninh Thuận"
+  },
+  {
+    "text": "thap po klong garai, do vinh, phan rang",
+    "label": "Tháp Po Klong Garai, Phường Đô Vinh, Thành phố Phan Rang-Tháp Chàm, Tỉnh Ninh Thuận"
+  },
+  {
+    "text": "bai bien ninh chu, p.van hai, tp.phan rang",
+    "label": "Bãi biển Ninh Chữ, Phường Văn Hải, Thành phố Phan Rang-Tháp Chàm, Tỉnh Ninh Thuận"
+  },
+  {
+    "text": "2 tran quang khai, loc tho, nha trang",
+    "label": "2, Trần Quang Khải, Phường Lộc Thọ, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "vinpearl land, hon tre, vinh nguyen, nha trang",
+    "label": "VinWonders Nha Trang, Đảo Hòn Tre, Phường Vĩnh Nguyên, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "thap ba ponagar, vinh phuoc, nhatrang",
+    "label": "Tháp Bà Ponagar, Phường Vĩnh Phước, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "hon chong, vinh phuoc, nha trang",
+    "label": "Hòn Chồng, Phường Vĩnh Phước, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "vien hai duong hoc, 1 cau da, vinh nguyen, nha trang",
+    "label": "Viện Hải dương học, Số 1, Cầu Đá, Phường Vĩnh Nguyên, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "cho dam, van thanh, nha trang",
+    "label": "Chợ Đầm, Phường Vạn Thạnh, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "bai dai, cam hai dong, cam lam, khanh hoa",
+    "label": "Bãi Dài, Xã Cam Hải Đông, Huyện Cam Lâm, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "san bay quoc te cam ranh, tp.cam ranh",
+    "label": "Sân bay quốc tế Cam Ranh, Thành phố Cam Ranh, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "block B, tang 10, can ho 02, chung cu gold coast, 1 tran hung dao, loc tho",
+    "label": "Block B, Tầng 10, Căn hộ 02, Chung cư Gold Coast, 1, Trần Hưng Đạo, Phường Lộc Thọ, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "100/20a/15 tran phu, loc tho, nhatrang (nha mau xanh)",
+    "label": "100/20A/15, Trần Phú, Phường Lộc Thọ, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "25 dinh tien hoang f.tan dinh w.1",
+    "label": "25, Đinh Tiên Hoàng, Phường Tân Định, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "cong truong quoc te, vo thi sau, q3",
+    "label": "Công trường Quốc tế, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "toa nha saigon centre, 65 le loi, ben nghe, quan 1",
+    "label": "Tòa nhà Saigon Centre, 65, Lê Lợi, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "khu do thi sala, an loi dong, tp.thuduc",
+    "label": "Khu đô thị Sala, Phường An Lợi Đông, Thành phố Thủ Đức, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "ham thu thiem, tp.thu duc",
+    "label": "Hầm Thủ Thiêm, Thành phố Thủ Đức, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "1000 vo van kiet, p.6, quan 5",
+    "label": "1000, Võ Văn Kiệt, Phường 6, Quận 5, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "chung cu the manor, 91 nguyen huu canh, p.22, binh thanh",
+    "label": "Chung cư The Manor, 91, Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "kcn nomura, h.an duong, hai phong",
+    "label": "Khu công nghiệp Nomura, Huyện An Dương, Hải Phòng"
+  },
+  {
+    "text": "cau binh, so dau, hong bang, hp",
+    "label": "Cầu Bính, Phường Sở Dầu, Quận Hồng Bàng, Hải Phòng"
+  },
+  {
+    "text": "bai bien do son, q.do son, hai phong",
+    "label": "Bãi biển Đồ Sơn, Quận Đồ Sơn, Hải Phòng"
+  },
+  {
+    "text": "dao cat ba, h.cat hai, hai phong",
+    "label": "Đảo Cát Bà, Huyện Cát Hải, Hải Phòng"
+  },
+  {
+    "text": "kcn long hau, h.can giuoc, long an",
+    "label": "Khu công nghiệp Long Hậu, Huyện Cần Giuộc, Tỉnh Long An"
+  },
+  {
+    "text": "189 hung vuong, p2, tp.tan an, long an",
+    "label": "189, Hùng Vương, Phường 2, Thành phố Tân An, Tỉnh Long An"
+  },
+  {
+    "text": "ap 1, xa my yen, h.ben luc, long an",
+    "label": "Ấp 1, Xã Mỹ Yên, Huyện Bến Lức, Tỉnh Long An"
+  },
+  {
+    "text": "10 vo van tan, p6, tp soc trang, soc trang",
+    "label": "10, Võ Văn Tần, Phường 6, Thành phố Sóc Trăng, Tỉnh Sóc Trăng"
+  },
+  {
+    "text": "chua doi, p3, tp.soc trang",
+    "label": "Chùa Dơi, Phường 3, Thành phố Sóc Trăng, Tỉnh Sóc Trăng"
+  },
+  {
+    "text": "24 tran hung dao, p1, tp.bac lieu, bac lieu",
+    "label": "24, Trần Hưng Đạo, Phường 1, Thành phố Bạc Liêu, Tỉnh Bạc Liêu"
+  },
+  {
+    "text": "nha cong tu bac lieu",
+    "label": "Nhà Công tử Bạc Liêu, 13, Điện Biên Phủ, Phường 3, Thành phố Bạc Liêu, Tỉnh Bạc Liêu"
+  },
+  {
+    "text": "dat mui, h.ngoc hien, ca mau",
+    "label": "Đất Mũi, Huyện Ngọc Hiển, Tỉnh Cà Mau"
+  },
+  {
+    "text": "200 ly thuong kiet, p6, tp.ca mau",
+    "label": "200, Lý Thường Kiệt, Phường 6, Thành phố Cà Mau, Tỉnh Cà Mau"
+  },
+  {
+    "text": "xom 5, thon hoanh, xa dai an, h.vu ban, nam dinh",
+    "label": "Xóm 5, Thôn Hoành, Xã Đại An, Huyện Vụ Bản, Tỉnh Nam Định"
+  },
+  {
+    "text": "sau cho tan dinh, hai ba trung, tan dinh, q1",
+    "label": "Sau chợ Tân Định, Đường Hai Bà Trưng, Phường Tân Định, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "kcn song than, di an, binh duong",
+    "label": "Khu công nghiệp Sóng Thần, Thành phố Dĩ An, Tỉnh Bình Dương"
+  },
+  {
+    "text": "tổ dân fố 1, fường na hang, thị xã na hang, tuyên quang",
+    "label": "Tổ dân phố 1, Phường Nà Hang, Thị xã Nà Hang, Tỉnh Tuyên Quang"
+  },
+  {
+    "text": "11/11b ngach 20, ngo 5, duong hoang quoc viet, ha noi (giao gio hc)",
+    "label": "11/11B, Ngách 20, Ngõ 5, Đường Hoàng Quốc Việt, Quận Cầu Giấy, Hà Nội"
+  },
+  {
+    "text": "dai hoc quoc gia ha noi, 144 xuan thuy",
+    "label": "Trường Đại học Quốc gia Hà Nội, 144, Xuân Thủy, Quận Cầu Giấy, Hà Nội"
+  },
+  {
+    "text": "dai hoc bach khoa ha noi, 1 dai co viet",
+    "label": "Trường Đại học Bách khoa Hà Nội, 1, Đại Cồ Việt, Quận Hai Bà Trưng, Hà Nội"
+  },
+  {
+    "text": "truong dai hoc kinh te quoc dan",
+    "label": "Trường Đại học Kinh tế Quốc dân, 207, Giải Phóng, Quận Hai Bà Trưng, Hà Nội"
+  },
+  {
+    "text": "TOA NHA FPT, 17 ZUY TAN, ZICH VONG HAU, CAU ZAY",
+    "label": "Tòa nhà FPT, 17, Duy Tân, Phường Dịch Vọng Hậu, Quận Cầu Giấy, Hà Nội"
+  },
+  {
+    "text": "cong vien thong nhat, tran nhan tong, hbt",
+    "label": "Công viên Thống Nhất, Đường Trần Nhân Tông, Quận Hai Bà Trưng, Hà Nội"
+  },
+  {
+    "text": "ho guom, ha noi",
+    "label": "Hồ Gươm, Quận Hoàn Kiếm, Hà Nội"
+  },
+  {
+    "text": "van mieu quoc tu giam, dong da",
+    "label": "Văn Miếu - Quốc Tử Giám, Quận Đống Đa, Hà Nội"
+  },
+  {
+    "text": "lang chu tich ho chi minh, ba dinh",
+    "label": "Lăng Chủ tịch Hồ Chí Minh, Quận Ba Đình, Hà Nội"
+  },
+  {
+    "text": "37a hung vuong, p.4, q.5",
+    "label": "37A, Hùng Vương, Phường 4, Quận 5, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "khu dan cu trung son, h.binh chanh",
+    "label": "Khu dân cư Trung Sơn, Huyện Bình Chánh, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "aeon mall tan fu",
+    "label": "Trung tâm thương mại Aeon Mall Tân Phú, 30, Bờ Bao Tân Thắng, Phường Sơn Kỳ, Quận Tân Phú, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "aeon mall binh tan",
+    "label": "Trung tâm thương mại Aeon Mall Bình Tân, Số 1, Đường số 17A, Phường Bình Trị Đông B, Quận Bình Tân, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "aeon mall long bien",
+    "label": "Trung tâm thương mại Aeon Mall Long Biên, 27, Cổ Linh, Quận Long Biên, Hà Nội"
   }
 ]
