@@ -33,7 +33,7 @@ LLM-finetuning/
 
 1. **Clone or create the project directory**:
    ```bash
-   cd /home/trongnv130/Desktop/self-project/LLM-finetuning
+   git clone https://github.com/TrongNV2003/LLM-finetuning.git
    ```
 
 2. **Create env & Install dependancies**:
