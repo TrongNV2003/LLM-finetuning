@@ -58,12 +58,10 @@ class Dataloader:
             train_data = load_dataset(os.path.join(parent_dir, self.data_args.train_file))
             if train_data:
                 self.raw_datasets["train"] = Dataset.from_list(train_data)
-        
         if self.data_args.validation_file:
             val_data = load_dataset(os.path.join(parent_dir, self.data_args.validation_file))
             if val_data:
                 self.raw_datasets["validation"] = Dataset.from_list(val_data)
-        
         if self.data_args.test_file:
             test_data = load_dataset(os.path.join(parent_dir, self.data_args.test_file))
             if test_data:
@@ -164,8 +162,10 @@ class LLMFinetuning:
 
         logger.warning(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
 
+        bnb_config = None
         self.compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-        if self.model_args.qlora:
+        if hasattr(self.model_args, 'qlora') and self.model_args.qlora:
+            logger.info("Using QLoRA with 4-bit quantization")
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_quant_type="nf4",
@@ -173,7 +173,7 @@ class LLMFinetuning:
                 bnb_4bit_compute_dtype=self.compute_dtype
             )
         else:
-            bnb_config = None
+            logger.info("Using full precision training (no quantization)")
         
         config = AutoConfig.from_pretrained(
             self.model_args.model_name_or_path,
@@ -351,7 +351,6 @@ class LLMFinetuning:
         
         input_length = inputs["input_ids"].shape[1]
         generated_tokens = outputs[0][input_length:]
-        
         generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
         
         return generated_text.strip()
