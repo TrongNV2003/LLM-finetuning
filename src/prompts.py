@@ -8,9 +8,8 @@ PROMPT_TEMPLATE = (
     "2. Sửa các lỗi chính tả phổ biến.\n"
     "3. Chuẩn hóa các từ viết tắt (ví dụ: 'Q.' thành 'Quận', 'TP.' thành 'Thành phố').\n"
     "4. Chỉ phản hồi địa chỉ hoàn thiện, ngoài ra không phản hồi hoặc giải thích thêm thông tin nào khác.\n"
-    "---\n"
+    "\n"
     "### Địa chỉ gốc:\n"
     "{text}\n\n"
     "### Địa chỉ hoàn thiện:\n"
-    "{label}\n"
 )

@@ -68,12 +68,27 @@ class Dataloader:
                 self.raw_datasets["test"] = Dataset.from_list(test_data)
 
     def format_prompt(self, text: str, label: str = None) -> str:
-        prompt_str = PROMPT_TEMPLATE.format(text=text, label=label)
-        
-        messages = [
-            {"role": "system", "content": PROMPT_SYSTEM},
-            {"role": "user", "content": prompt_str}
-        ]
+        """Format prompt for training with proper completion"""
+        if label is not None:
+            prompt_str = PROMPT_TEMPLATE.format(text=text)
+            messages = [
+                {"role": "system", "content": PROMPT_SYSTEM},
+                {"role": "user", "content": prompt_str},
+                {"role": "assistant", "content": label}
+            ]
+            
+            return self.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=False,
+                enable_thinking=False
+            )
+        else:
+            prompt_str = PROMPT_TEMPLATE.format(text=text)
+            messages = [
+                {"role": "system", "content": PROMPT_SYSTEM},
+                {"role": "user", "content": prompt_str}
+            ]
             
         return self.tokenizer.apply_chat_template(
             messages,
@@ -255,8 +270,13 @@ class LLMFinetuning:
         trainer.train()
         trainer.save_model()
         self.tokenizer.save_pretrained(training_args.output_dir)
-        logger.info(f"Model saved to {training_args.output_dir}")
         
+        if hasattr(self.model, 'save_pretrained'):
+            logger.info("Saving LoRA adapters...")
+            self.model.save_pretrained(training_args.output_dir)
+        
+        logger.info(f"Model saved to {training_args.output_dir}")
+                
         return trainer
     
     def evaluate(self):
@@ -309,7 +329,13 @@ class LLMFinetuning:
     
     def predict(self, text: str) -> str:
         self.model.eval()
-        prompt_str = PROMPT_TEMPLATE.format(text=text, label="")
+        
+        if hasattr(self.model, 'peft_config'):
+            logger.debug("✅ LoRA adapters are active")
+        else:
+            logger.warning("⚠️ LoRA adapters might not be active")
+        
+        prompt_str = PROMPT_TEMPLATE.format(text=text)
         messages = [
             {"role": "system", "content": PROMPT_SYSTEM},
             {"role": "user", "content": prompt_str},
@@ -324,13 +350,23 @@ class LLMFinetuning:
 
         result = self._generate_text(
             prompt,
-            max_new_tokens=50,
-            temperature=0.7,
-            top_p=0.8,
-            top_k=20,
-            repetition_penalty=1.2,
+            max_new_tokens=256,
+            temperature=0.3,
+            top_p=0.9,
+            top_k=50,
+            repetition_penalty=1.1,
         )
-        return result.strip()
+        
+        logger.debug(f"Raw prediction: '{result}'")
+        
+        result = result.strip()
+        
+        if result.startswith("### Địa chỉ hoàn thiện:"):
+            result = result.replace("### Địa chỉ hoàn thiện:", "").strip()
+        
+        logger.debug(f"Cleaned prediction: '{result}'")
+        
+        return result
 
     def _generate_text(
         self,
@@ -355,10 +391,20 @@ class LLMFinetuning:
                     repetition_penalty=repetition_penalty,
                     pad_token_id=self.tokenizer.eos_token_id,
                     eos_token_id=self.tokenizer.eos_token_id,
+                    do_sample=True,
                 )
         
         input_length = inputs["input_ids"].shape[1]
         generated_tokens = outputs[0][input_length:]
+        
+        logger.debug(f"Generated tokens shape: {generated_tokens.shape}")
+        logger.debug(f"Generated token IDs: {generated_tokens[:10]}")
+        
+        if len(generated_tokens) == 1:
+            eos_token_id = self.tokenizer.eos_token_id
+            if generated_tokens[0].item() == eos_token_id:
+                logger.warning(f"⚠️ Model only generated EOS token ({eos_token_id}). This suggests the model hasn't learned to generate proper responses.")
+        
         generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
         
         return generated_text.strip()
