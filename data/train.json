@@ -1286,5 +1286,117 @@
   {
     "text": "Thôn 2, xã Đông Phú, huyện Đông Sơn, tỉnh Thanh Hóa",
     "label": "Thôn 2, Xã Đông Phú, Huyện Đông Sơn, Tỉnh Thanh Hóa"
+  },
+  {
+    "text": "Tầng 9, Phòng 902, toà ACB, 17 nguyen thi minh khai, p1, q3, tp hcm",
+    "label": "Tầng 9, Phòng 902, Tòa ACB, Số 17, Đường Nguyễn Thị Minh Khai, Phường 1, Quận 3, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "can ho 05, block D, chung cu The EverRich, 26 Doan Thi Diem, p7, q10, tphcm",
+    "label": "Căn hộ 05, Block D, Chung cư The EverRich, Số 26, Đường Đoàn Thị Điểm, Phường 7, Quận 10, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "nhà 8, hẻm 23, đường Hoàng Diệu 2, phường Phước Tiến, tp Nha Trang, khanh hoa",
+    "label": "Nhà số 8, Hẻm 23, Đường Hoàng Diệu 2, Phường Phước Tiến, Thành phố Nha Trang, Tỉnh Khánh Hòa"
+  },
+  {
+    "text": "kho A12 - cụm CN Tam Phước, lô 4, đt 769, tp Biên Hòa, dong nai",
+    "label": "Kho A12, Lô 4, Cụm Công nghiệp Tam Phước, Đường ĐT769, Thành phố Biên Hòa, Tỉnh Đồng Nai"
+  },
+  {
+    "text": "ấp 6B, xo 12, xa My Hoa, huyen Kien Luong, Kien Giang",
+    "label": "Ấp 6B, Khu 12, Xã Mỹ Hòa, Huyện Kiên Lương, Tỉnh Kiên Giang"
+  },
+  {
+    "text": "lô 22, khu CN Pho Noi A, duong N8, Hung Yen",
+    "label": "Lô 22, Khu công nghiệp Phố Nối A, Đường N8, Tỉnh Hưng Yên"
+  },
+  {
+    "text": "toa nha VIN, can 3F, 101 Tran Phu, p Hai Châu I, Da Nang",
+    "label": "Tòa VIN, Căn 3F, Số 101, Đường Trần Phú, Phường Hải Châu I, Quận Hải Châu, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "số 2B, ngõ 9, phố Vạn Bảo, p. Ngọc Khánh, q Ba Dinh, HaNoi",
+    "label": "Số 2B, Ngõ 9, Phố Vạn Bảo, Phường Ngọc Khánh, Quận Ba Đình, Hà Nội"
+  },
+  {
+    "text": "kiosk 04 - chợ trung tâm, 3 Le Loi, p.1, tp Vinh, Nghe An",
+    "label": "Kiosk 04, Chợ Trung tâm, Số 3, Đường Lê Lợi, Phường 1, Thành phố Vinh, Tỉnh Nghệ An"
+  },
+  {
+    "text": "toà A1, phong 210, 55 Nguyen Cong Tru, p. Thach Thang, Da Nang",
+    "label": "Tòa A1, Phòng 210, Số 55, Đường Nguyễn Công Trứ, Phường Thạch Thang, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "nhà trọ 07, ngõ 2, phố Trần Quang Khải, p Hàng Mây, q Hoàn Kiếm, Hà Nội",
+    "label": "Nhà trọ 07, Ngõ 2, Phố Trần Quang Khải, Phường Hàng Mây, Quận Hoàn Kiếm, Hà Nội"
+  },
+  {
+    "text": "lô 9-10, KCN Dung Quat, duong DT614, Binh Son, Quang Ngai",
+    "label": "Lô 9-10, Khu công nghiệp Dung Quất, Đường ĐT614, Huyện Bình Sơn, Tỉnh Quảng Ngãi"
+  },
+  {
+    "text": "căn 2B, toà C, chung cu Hoang Anh Gia Lai, 45 Le Van Sy, p14, q3, HCM",
+    "label": "Căn 2B, Tòa C, Chung cư Hoàng Anh Gia Lai, Số 45, Đường Lê Văn Sỹ, Phường 14, Quận 3, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "ap 5, xa Hoa Son, huyen Dien Bien, tinh Dien Bien",
+    "label": "Ấp 5, Xã Hòa Sơn, Huyện Điện Biên, Tỉnh Điện Biên"
+  },
+  {
+    "text": "bưu cục 08 - 34A Tran Hung Dao, p. Nguyen Thai Binh, q1, tphcm",
+    "label": "Bưu cục 08, Số 34A, Đường Trần Hưng Đạo, Phường Nguyễn Thái Bình, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "toà nhà 7 tầng, 14 Duong Le Lai, phuong Tran Hung Dao, Thai Nguyen",
+    "label": "Tòa nhà 7 tầng, Số 14, Đường Lê Lợi, Phường Trần Hưng Đạo, Thành phố Thái Nguyên, Tỉnh Thái Nguyên"
+  },
+  {
+    "text": "khu dan cu 12, lo 5, duong Nguyen Trai, p Lam Son, Thanh Hoa",
+    "label": "Khu dân cư 12, Lô 5, Đường Nguyễn Trãi, Phường Lam Sơn, Thành phố Thanh Hóa, Tỉnh Thanh Hóa"
+  },
+  {
+    "text": "kho TNT - lot B7, duong noi bo, KCN Hoa Phu, Pleiku, Gia Lai",
+    "label": "Kho TNT, Lô B7, Đường nội bộ, Khu công nghiệp Hoa Phú, Thành phố Pleiku, Tỉnh Gia Lai"
+  },
+  {
+    "text": "snt 3 - sân tập, 9 Bach Dang, phuong An Hai Dong, q. Son Tra, Da Nang",
+    "label": "Sân tập SNT 3, Số 9, Đường Bạch Đằng, Phường An Hải Đông, Quận Sơn Trà, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "can 4, toà F, chung cu Saigon South, 43 Nguyen Huu Tho, Nha Be, tp hcm",
+    "label": "Căn 4, Tòa F, Chung cư Saigon South, Số 43, Đường Nguyễn Hữu Thọ, Huyện Nhà Bè, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "thôn 1, xa Tan Thanh, huyen Chau Thanh, Ben Tre",
+    "label": "Thôn 1, Xã Tân Thạnh, Huyện Châu Thành, Tỉnh Bến Tre"
+  },
+  {
+    "text": "lot 3, duong so 9, kcn Tan An, Tan An, Long An",
+    "label": "Lô 3, Đường Số 9, Khu công nghiệp Tân An, Thành phố Tân An, Tỉnh Long An"
+  },
+  {
+    "text": "số 101, lô G1, khu TM-DV, đường Hàm Nghi, p Tan Phu, tp Quang Ngai",
+    "label": "Số 101, Lô G1, Khu Thương mại - Dịch vụ, Đường Hàm Nghi, Phường Tân Phú, Thành phố Quảng Ngãi, Tỉnh Quảng Ngãi"
+  },
+  {
+    "text": "kho A - 12km QL 14, ap Tan Kieng, xa Buon Tri, Dak Lak",
+    "label": "Kho A, Km 12, Quốc lộ 14, Ấp Tân Kiểng, Xã Buôn Trị, Tỉnh Đắk Lắk"
+  },
+  {
+    "text": "toà G - phòng KD1, 88 Pham Hung, My Dinh 1, Nam Tu Liem, Ha Noi",
+    "label": "Tòa G, Phòng Kinh doanh 1, Số 88, Đường Phạm Hùng, Phường Mỹ Đình 1, Quận Nam Từ Liêm, Hà Nội"
+  },
+  {
+    "text": "nhà số 9, tổ 5, khu phố 2, p. Thanh Phong, TX. Sa Đéc, Dong Thap",
+    "label": "Nhà số 9, Tổ 5, Khu phố 2, Phường Thanh Phong, Thị xã Sa Đéc, Tỉnh Đồng Tháp"
+  },
+  {
+    "text": "cua hang 15, cho An Binh, 7 Nguyen Van Troi, p An Binh, TP. Rach Gia, Kien Giang",
+    "label": "Cửa hàng 15, Chợ An Bình, Số 7, Đường Nguyễn Văn Trỗi, Phường An Bình, Thành phố Rạch Giá, Tỉnh Kiên Giang"
+  },
+  {
+    "text": "lô B2, xưởng 11, KCN Tam Điệp, huyện Tam Điệp, Ninh Bình",
+    "label": "Lô B2, Xưởng 11, Khu công nghiệp Tam Điệp, Huyện Tam Điệp, Tỉnh Ninh Bình"
   }
 ]
