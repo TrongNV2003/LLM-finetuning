@@ -1,6 +1,6 @@
 import os
 os.environ["HYDRA_FULL_ERROR"] = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
@@ -101,7 +101,7 @@ class Dataloader:
         else:
             raise ValueError("No datasets available for processing")
         
-        with training_args.main_process_first(desc="dataset map pre-processing"):
+        with training_args.main_process_first(desc="dataset mapping"):
             datasets_tokenized = self.raw_datasets.map(
                 self.preprocess_fn,
                 batched=True,
@@ -367,31 +367,6 @@ class LLMFinetuning:
 @hydra.main(version_base=None, config_path="conf", config_name="finetuning")
 def main(cfg: DictConfig):
     set_seed(cfg.seed, deterministic=True)
-    
-    is_deepspeed = (
-        'WORLD_SIZE' in os.environ and 
-        'RANK' in os.environ and 
-        'LOCAL_RANK' in os.environ
-    )
-    
-    if is_deepspeed:
-        logger.info("🚀 Running with DeepSpeed distributed training")
-        
-        try:
-            import deepspeed
-            deepspeed.init_distributed()
-            logger.info("✅ DeepSpeed distributed backend initialized")
-        except ImportError:
-            logger.warning("⚠️ DeepSpeed not installed, falling back to standard training")
-            is_deepspeed = False
-        except Exception as e:
-            logger.warning(f"⚠️ Failed to initialize DeepSpeed: {e}")
-            is_deepspeed = False
-    else:
-        logger.info("💡 Running standard training (not distributed)")
-        for env_var in ['LOCAL_RANK', 'WORLD_SIZE', 'RANK', 'MASTER_ADDR', 'MASTER_PORT']:
-            if env_var in os.environ:
-                del os.environ[env_var]
 
     experiment_name = cfg.logging.mlflow.experiment_name
     try:
@@ -418,16 +393,6 @@ def main(cfg: DictConfig):
         training_args.bf16 = torch.cuda.is_bf16_supported()
         
         logger.info(f"Mixed precision: BF16={training_args.bf16}, FP16={training_args.fp16}, TF32={training_args.tf32}")
-        
-        if is_deepspeed:
-            deepspeed_config_path = os.path.join(current_dir, "conf", "config.json")
-            if os.path.exists(deepspeed_config_path):
-                training_args.deepspeed = deepspeed_config_path
-                logger.info(f"✅ DeepSpeed ZeRO Stage 3 enabled with config: {deepspeed_config_path}")
-            else:
-                logger.warning("⚠️ DeepSpeed config not found, using standard training")
-        else:
-            logger.info("💡 To use DeepSpeed for memory optimization, run: deepspeed --num_gpus=1 src/train.py")
         
         if not (hasattr(cfg.model, 'lora') and cfg.model.lora is not None and cfg.model.lora != 'None'):
             logger.info("Adjusting training parameters for full fine-tuning with memory optimization...")
