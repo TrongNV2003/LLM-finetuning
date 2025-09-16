@@ -12,14 +12,14 @@ class MemoryLoggerCallback(TrainerCallback):
 
     def on_step_end(self, args, state, control, **kwargs):
         if torch.cuda.is_available():
-            torch.cuda.memory_allocated() / 1024**2
-            reserved = torch.cuda.memory_reserved() / 1024**2
-            torch.cuda.max_memory_allocated() / 1024**2
+            allocated = torch.cuda.memory_allocated() / 1024**3 # GB
+            reserved = torch.cuda.memory_reserved() / 1024**3   # GB
+            peak = torch.cuda.max_memory_allocated() / 1024**3  # GB
 
             self.memory_stats = {
-                # "allocated_mem_MB": round(allocated, 2),
+                "allocated_mem": round(allocated, 2),
                 "GPU_reserved": round(reserved, 2),
-                # "peak_mem_MB": round(peak, 2)
+                "peak_mem": round(peak, 2)
             }
 
     def on_log(self, args, state, control, logs=None, **kwargs):

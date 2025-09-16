@@ -4,15 +4,15 @@ defaults:
   - model: qwen3
 
 training_arguments:
-  optim: "adamw_torch"
+  optim: "adamw_torch_fused"
   bf16: true
   do_train: true
   do_eval: true
   do_predict: true
   output_dir: "./finetuning-checkpoints"
   num_train_epochs: 5
-  per_device_train_batch_size: 64
-  per_device_eval_batch_size: 64
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 16
   gradient_accumulation_steps: 1
   eval_accumulation_steps: 1
   packing: true

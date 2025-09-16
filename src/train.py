@@ -180,6 +180,7 @@ class LLMFinetuning:
             pad_token_id=self.tokenizer.pad_token_id,
             trust_remote_code=self.model_args.trust_remote_code,
             cache_dir=self.model_args.cache_dir,
+            use_cache=self.model_args.use_cache,
             revision=self.model_args.revision,
             token=cfg.token,
         )
@@ -196,7 +197,14 @@ class LLMFinetuning:
             device_map="auto",
             attn_implementation=self.model_args.attn_implementation,
             torch_dtype=self.compute_dtype,
+            low_cpu_mem_usage=self.model_args.low_cpu_mem_usage,
         )
+        
+        if hasattr(self.model, 'gradient_checkpointing_enable'):
+            self.model.gradient_checkpointing_enable()
+            logger.info("✅ Gradient checkpointing enabled")
+        else:
+            logger.warning("⚠️ Model doesn't support gradient checkpointing")
 
         if self.model_args.lora is not None and self.model_args.lora != 'None':
             modules = find_all_linear_names(self.model)
@@ -241,8 +249,8 @@ class LLMFinetuning:
             processing_class=self.tokenizer,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
-            callbacks=[MemoryLoggerCallback(), TimeLoggerCallback()],
             compute_metrics=compute_metrics,
+            callbacks=[MemoryLoggerCallback(), TimeLoggerCallback()],
         )
         trainer.train()
         trainer.save_model()
@@ -359,6 +367,31 @@ class LLMFinetuning:
 @hydra.main(version_base=None, config_path="conf", config_name="finetuning")
 def main(cfg: DictConfig):
     set_seed(cfg.seed, deterministic=True)
+    
+    is_deepspeed = (
+        'WORLD_SIZE' in os.environ and 
+        'RANK' in os.environ and 
+        'LOCAL_RANK' in os.environ
+    )
+    
+    if is_deepspeed:
+        logger.info("🚀 Running with DeepSpeed distributed training")
+        
+        try:
+            import deepspeed
+            deepspeed.init_distributed()
+            logger.info("✅ DeepSpeed distributed backend initialized")
+        except ImportError:
+            logger.warning("⚠️ DeepSpeed not installed, falling back to standard training")
+            is_deepspeed = False
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to initialize DeepSpeed: {e}")
+            is_deepspeed = False
+    else:
+        logger.info("💡 Running standard training (not distributed)")
+        for env_var in ['LOCAL_RANK', 'WORLD_SIZE', 'RANK', 'MASTER_ADDR', 'MASTER_PORT']:
+            if env_var in os.environ:
+                del os.environ[env_var]
 
     experiment_name = cfg.logging.mlflow.experiment_name
     try:
@@ -377,6 +410,48 @@ def main(cfg: DictConfig):
         trainer = LLMFinetuning(cfg=cfg)
         training_args = SFTConfig(**cfg.training_arguments)
         training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
+        
+        training_args.dataloader_pin_memory = False
+        training_args.remove_unused_columns = True
+        training_args.dataloader_num_workers = 0
+        training_args.fp16 = not torch.cuda.is_bf16_supported()
+        training_args.bf16 = torch.cuda.is_bf16_supported()
+        
+        logger.info(f"Mixed precision: BF16={training_args.bf16}, FP16={training_args.fp16}, TF32={training_args.tf32}")
+        
+        if is_deepspeed:
+            deepspeed_config_path = os.path.join(current_dir, "conf", "config.json")
+            if os.path.exists(deepspeed_config_path):
+                training_args.deepspeed = deepspeed_config_path
+                logger.info(f"✅ DeepSpeed ZeRO Stage 3 enabled with config: {deepspeed_config_path}")
+            else:
+                logger.warning("⚠️ DeepSpeed config not found, using standard training")
+        else:
+            logger.info("💡 To use DeepSpeed for memory optimization, run: deepspeed --num_gpus=1 src/train.py")
+        
+        if not (hasattr(cfg.model, 'lora') and cfg.model.lora is not None and cfg.model.lora != 'None'):
+            logger.info("Adjusting training parameters for full fine-tuning with memory optimization...")
+            original_batch_size = training_args.per_device_train_batch_size
+            training_args.per_device_train_batch_size = min(original_batch_size, 1)
+            training_args.per_device_eval_batch_size = min(training_args.per_device_eval_batch_size, 1)
+            
+            effective_batch_size = max(original_batch_size, 8)
+            training_args.gradient_accumulation_steps = max(
+                training_args.gradient_accumulation_steps, 
+                effective_batch_size // training_args.per_device_train_batch_size
+            )
+            
+            training_args.max_grad_norm = 1.0
+            
+            logger.info(f"🔥 EXTREME MEMORY OPTIMIZATION ENABLED")
+            logger.info(f"Batch size: {training_args.per_device_train_batch_size}")
+            logger.info(f"Gradient accumulation: {training_args.gradient_accumulation_steps}")
+            logger.info(f"Effective batch size: {training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps}")
+        else:
+            logger.info("Using LoRA - applying moderate memory optimization...")
+            training_args.per_device_train_batch_size = min(training_args.per_device_train_batch_size, 4)
+            training_args.per_device_eval_batch_size = min(training_args.per_device_eval_batch_size, 4)
+            logger.info(f"LoRA batch size: {training_args.per_device_train_batch_size}")
         
         datasets_processed = dataloader.get_processed_datasets(training_args)
         train_dataset = datasets_processed.get("train")

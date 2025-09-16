@@ -2,11 +2,13 @@ model_name_or_path: Qwen/Qwen3-0.6B
 padding_side: right
 model_max_length: 256
 cache_dir:
+use_cache: false
 revision:
 use_fast_tokenizer: true
 trust_remote_code: true
 pre_tokenize: false
 attn_implementation: flash_attention_2
+low_cpu_mem_usage: true
 
 lora:
   r: 8
