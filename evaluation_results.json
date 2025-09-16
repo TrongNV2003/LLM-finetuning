@@ -1,0 +1,333 @@
+{
+  "metrics": {
+    "exact_match": 0.15217391304347827,
+    "bleu_score": 0.6173932575776224,
+    "rouge_l": 0.8175516046797414,
+    "lexical_similarity": 0.8694302061257418,
+    "num_samples": 46
+  },
+  "detailed_results": [
+    {
+      "id": 0,
+      "input": "111, Nvancu, Q5, HCM",
+      "prediction": "111, Nguyễn Văn Cừ, Quận 5, Thành phố Hồ Chí Minh",
+      "reference": "111, Nguyễn Văn Cừ, Quận 5, Hồ Chí Minh",
+      "exact_match": false
+    },
+    {
+      "id": 1,
+      "input": "22, Điện biên phủ, Ba đình, HN",
+      "prediction": "22, Điện Biên Phủ, Thành phố Hồ Chí Minh",
+      "reference": "22, Điện Biên Phủ, Ba Đình, Hà Nội",
+      "exact_match": false
+    },
+    {
+      "id": 2,
+      "input": "100 nguyễn văn thoại, p mỹ an, q ngũ hành sơn, đà nẵng",
+      "prediction": "100, Nguyễn Văn Thọ, Phường Mỹ An, Quận Ngũ Hành Sơn, Đà Nẵng",
+      "reference": "100, Nguyễn Văn Thoại, Phường Mỹ An, Quận Ngũ Hành Sơn, Đà Nẵng",
+      "exact_match": false
+    },
+    {
+      "id": 3,
+      "input": "1a yet kieu, p tho quang, q.son tra, đà nẵng",
+      "prediction": "Số 1A, Đường Yêu Kiều, Phường Thọ Quang, Quận Sơn Trạc, Đà Nẵng",
+      "reference": "1A, Yết Kiêu, Phường Thọ Quang, Quận Sơn Trà, Đà Nẵng",
+      "exact_match": false
+    },
+    {
+      "id": 4,
+      "input": "gần sân vận động hòa xuân, p hoa xuân, q cam lệ, đà nẵng",
+      "prediction": "Gần sân vận động Hòa Xuân, Phường Hoa Xuân, Quận Cam Lệ, Đà Nẵng",
+      "reference": "Gần Sân vận động Hòa Xuân, Phường Hòa Xuân, Quận Cẩm Lệ, Đà Nẵng",
+      "exact_match": false
+    },
+    {
+      "id": 5,
+      "input": "khóm 1, p1, tp sa đéc, đồng tháp",
+      "prediction": "Khóm 1, Phường 1, Thành phố Đà Nẵng, Tỉnh Đồng Tháp",
+      "reference": "Khóm 1, Phường 1, Thành phố Sa Đéc, Tỉnh Đồng Tháp",
+      "exact_match": false
+    },
+    {
+      "id": 6,
+      "input": "làng hoa sa đéc, đường hoa, tân quy đông, sa đéc, đồng tháp",
+      "prediction": "Làng Hoa Să Đéc, Đường Hảo, Phường Tân Quý Đông, Thành phố Sa Đéc, Tỉnh Đồng Tháp",
+      "reference": "Làng hoa Sa Đéc, Đường Hoa, Phường Tân Quy Đông, Thành phố Sa Đéc, Tỉnh Đồng Tháp",
+      "exact_match": false
+    },
+    {
+      "id": 7,
+      "input": "180 tran hung dao, p.my binh, tp.long xuyen, an giang",
+      "prediction": "180, Trần Hưng Đạo, Phường Mỹ Bình, Thành phố Long Xuyên, Tỉnh An Giang",
+      "reference": "180, Trần Hưng Đạo, Phường Mỹ Bình, Thành phố Long Xuyên, Tỉnh An Giang",
+      "exact_match": true
+    },
+    {
+      "id": 8,
+      "input": "trường đại học y dược cần thơ, 179 nguyễn văn cừ, an khánh, ninh kiều",
+      "prediction": "Trường Đại học Y Dược Cần Thơ, Số 179, Đường Nguyễn Văn Cừ, Phường An Khánh, Quận Ninh Kiều, Thành phố Cần Thơ",
+      "reference": "Trường Đại học Y Dược Cần Thơ, 179, Nguyễn Văn Cừ, Phường An Khánh, Quận Ninh Kiều, Cần Thơ",
+      "exact_match": false
+    },
+    {
+      "id": 9,
+      "input": "102/5e duong le binh, p hung loi, ninh kieu, can tho",
+      "prediction": "102/5, Đường Lê Bình, Phường Hùng Liệu, Thành phố Cần Thơ, Tỉnh Ninh Kiều",
+      "reference": "102/5E, Đường Lê Bình, Phường Hưng Lợi, Quận Ninh Kiều, Cần Thơ",
+      "exact_match": false
+    },
+    {
+      "id": 10,
+      "input": "198 nguyễn thị minh khai, p.xuân khánh, ninh kiều, cần thơ",
+      "prediction": "Số 198, Nguyễn Thị Minh Khai, Phường Xuân Khánh, Quận Ninh Kiều, Thành phố Cần Thơ",
+      "reference": "198, Nguyễn Thị Minh Khai, Phường Xuân Khánh, Quận Ninh Kiều, Cần Thơ",
+      "exact_match": false
+    },
+    {
+      "id": 11,
+      "input": "2 võ văn tần, p.tân an, q.ninh kiều, cần thơ",
+      "prediction": "2, Võ Văn Tần, Phường Tân An, Quận Ninh Kiều, Cần Thơ",
+      "reference": "2, Võ Văn Tần, Phường Tân An, Quận Ninh Kiều, Cần Thơ",
+      "exact_match": true
+    },
+    {
+      "id": 12,
+      "input": "9A phạm ngọc thạch, cái khế, ninh kiều, cần thơ",
+      "prediction": "Số 9A, Phường Cái Khế, Quận Ninh Kiều, Thành phố Cần Thơ",
+      "reference": "9A, Phạm Ngọc Thạch, Phường Cái Khế, Quận Ninh Kiều, Cần Thơ",
+      "exact_match": false
+    },
+    {
+      "id": 13,
+      "input": "kdc hưng phú 1, p.hưng phú, q.cái răng, cần thơ",
+      "prediction": "Khu dân cư Hùng Phú 1, Phường Hưng Phú, Quận Cẩm Phả, Thành phố Cần Thơ",
+      "reference": "Khu dân cư Hưng Phú 1, Phường Hưng Phú, Quận Cái Răng, Cần Thơ",
+      "exact_match": false
+    },
+    {
+      "id": 14,
+      "input": "186 huỳnh cương, an cư, ninh kiều, cần thơ",
+      "prediction": "186, Hữu Cương, Quận An Cư, Cần Thơ",
+      "reference": "186, Huỳnh Cương, Phường An Cư, Quận Ninh Kiều, Cần Thơ",
+      "exact_match": false
+    },
+    {
+      "id": 15,
+      "input": "12 lê lợi, tp.quy nhơn, bình định",
+      "prediction": "Số 12, Lê Lợi, Thành phố Quy Nhơn, Tỉnh Bình Định",
+      "reference": "12, Lê Lợi, Thành phố Quy Nhơn, Tỉnh Bình Định",
+      "exact_match": false
+    },
+    {
+      "id": 16,
+      "input": "1 an duong vuong, p nguyen van cu, tp.quy nhon, binh dinh",
+      "prediction": "1, An Đồn Vuông, Phường Nguyễn Văn Cừ, Thành phố Quy Nhơn, Tỉnh Bình Định",
+      "reference": "1, An Dương Vương, Phường Nguyễn Văn Cừ, Thành phố Quy Nhơn, Tỉnh Bình Định",
+      "exact_match": false
+    },
+    {
+      "id": 17,
+      "input": "50 nguyễn huệ, tp.đông hà, quảng trị",
+      "prediction": "50, Nguyễn Huệ, Thành phố Đông Hà, Tỉnh Quảng Trị",
+      "reference": "50, Nguyễn Huệ, Thành phố Đông Hà, Tỉnh Quảng Trị",
+      "exact_match": true
+    },
+    {
+      "id": 18,
+      "input": "số cũ 20, số mới 45, đường lê thành tôn, p.phú hội, tp.huế",
+      "prediction": "Số cũ 20, Số mới 45, Đường Lê Thành Tông, Phường Phú Hội, Thành phố Huế",
+      "reference": "45, Lê Thánh Tôn, Phường Phú Hội, Thành phố Huế, Tỉnh Thừa Thiên Huế",
+      "exact_match": false
+    },
+    {
+      "id": 19,
+      "input": "khách sạn saigon morin, 30 lê lợi, huế",
+      "prediction": "Khách sạn Saigon Morin, Số 30, Lê Lợi, Quận Hai Bà Trưng, Hà Nội",
+      "reference": "Khách sạn Saigon Morin, 30, Lê Lợi, Thành phố Huế",
+      "exact_match": false
+    },
+    {
+      "id": 20,
+      "input": "cho dong ba, tran hung dao, tp.hue",
+      "prediction": "Chợ Đông Bắc, Trần Hưng Đạo, Thành phố Hue",
+      "reference": "Chợ Đông Ba, Đường Trần Hưng Đạo, Thành phố Huế",
+      "exact_match": false
+    },
+    {
+      "id": 21,
+      "input": "khu pho 2, p.phu thuy, tp.phan thiet, binh thuan",
+      "prediction": "Khu Phố 2, Phường Phú Thy, Thành phố Phan Thiết, Tỉnh Bình Thuận",
+      "reference": "Khu phố 2, Phường Phú Thủy, Thành phố Phan Thiết, Tỉnh Bình Thuận",
+      "exact_match": false
+    },
+    {
+      "id": 22,
+      "input": "1 Nguyễn Tất Thành, phường Hưng Long, thành phố Phan Thiết, tỉnh Bình Thuận",
+      "prediction": "1, Nguyễn Tất Thành, Phường Hưng Long, Thành phố Phan Thiết, Tỉnh Bình Thuận",
+      "reference": "1, Nguyễn Tất Thành, Phường Hưng Long, Thành phố Phan Thiết, Tỉnh Bình Thuận",
+      "exact_match": true
+    },
+    {
+      "id": 23,
+      "input": "40 đường 16/4, phường Mỹ Bình, thành phố Phan Rang-Tháp Chàm, tỉnh Ninh Thuận",
+      "prediction": "40, Đường 16/4, Phường Mỹ Bình, Thành phố Phan Rạng-Tháp Chàm, Tỉnh Ninh Thuận",
+      "reference": "40, Đường 16/4, Phường Mỹ Bình, Thành phố Phan Rang-Tháp Chàm, Tỉnh Ninh Thuận",
+      "exact_match": false
+    },
+    {
+      "id": 24,
+      "input": "2 tran quang khai, lộc thọ, nha trang",
+      "prediction": "2, Trần Quảng Hải, Lộc Thọ, Nha Trang",
+      "reference": "2, Trần Quang Khải, Phường Lộc Thọ, Thành phố Nha Trang",
+      "exact_match": false
+    },
+    {
+      "id": 25,
+      "input": "viện hải dương học, 1 cầu đá, vĩnh nguyên, nha trang, khánh hòa",
+      "prediction": "Viện Hải Dương Học, Số 1, Cầu Đá, Phường Vĩnh Nguyên, Thành phố Nha Trang, Tỉnh Khánh Hòa",
+      "reference": "Viện Hải dương học, Số 1, Cầu Đá, Phường Vĩnh Nguyên, Thành phố Nha Trang, Tỉnh Khánh Hòa",
+      "exact_match": true
+    },
+    {
+      "id": 26,
+      "input": "block B, t10, căn hộ 02, chung cư gold coast, 1 trần hưng đạo, lộc thọ, nha trang, khánh hòa",
+      "prediction": "Căn hộ 02, Block B, Tòa 10, Chung cư Gold Coast, Số 1 Trần Hưng Đạo, Phường Lộc Thọ, Thành phố Nha Trang, Tỉnh Khánh Hòa",
+      "reference": "Block B, Tầng 10, Căn hộ 02, Chung cư Gold Coast, 1, Trần Hưng Đạo, Phường Lộc Thọ, Thành phố Nha Trang, Tỉnh Khánh Hòa",
+      "exact_match": false
+    },
+    {
+      "id": 27,
+      "input": "100/20a/15 tran phu, loc tho, nhatrang (nha mau xanh)",
+      "prediction": "100/20A/15, Trần Phú, Lô Cư, Huyện Lộc Thọ, Nha Mau Xanh",
+      "reference": "100/20A/15, Trần Phú, Phường Lộc Thọ, Thành phố Nha Trang",
+      "exact_match": false
+    },
+    {
+      "id": 28,
+      "input": "25 dinh tien hoang p.tan dinh q1 hcm",
+      "prediction": "25, Đường Dinh Tỉnh, Quận 1, Thành phố Hồ Chí Minh",
+      "reference": "25, Đinh Tiên Hoàng, Phường Tân Định, Quận 1, Thành phố Hồ Chí Minh",
+      "exact_match": false
+    },
+    {
+      "id": 29,
+      "input": "cong truong quoc te, vo thi sau, q3, hcm",
+      "prediction": "Công trình Quốc tế, Số 1, Đường Võ Thị Sáu, Quận Tây Hồ, Thành phố Hồ Chí Minh",
+      "reference": "Công trường Quốc tế, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh",
+      "exact_match": false
+    },
+    {
+      "id": 30,
+      "input": "tòa saigon centre, 65 le loi, ben nghe, quan 1, hcm",
+      "prediction": "Tòa nhà Saigon Center, Số 65, Đường Lê Lợi, Phường Bến Nghé, Quận Ninh Kiều, Thành phố Hồ Chí Minh",
+      "reference": "Tòa Saigon Centre, 65, Lê Lợi, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh",
+      "exact_match": false
+    },
+    {
+      "id": 31,
+      "input": "kđt sala, an lợi đông, tp.thủ đức, hcm",
+      "prediction": "Số Khu Đấu trường, An Lợi Đông, Thành phố Thủ Đức, Thành phố Hồ Chí Minh",
+      "reference": "Khu đô thị Sala, Phường An Lợi Đông, Thành phố Thủ Đức, Thành phố Hồ Chí Minh",
+      "exact_match": false
+    },
+    {
+      "id": 32,
+      "input": "1000 võ văn kiệt, p.6, q.5, hcm",
+      "prediction": "1000, Võ Văn Kiệt, Phường 6, Quận 5, Thành phố Hồ Chí Minh",
+      "reference": "1000, Võ Văn Kiệt, Phường 6, Quận 5, Thành phố Hồ Chí Minh",
+      "exact_match": true
+    },
+    {
+      "id": 33,
+      "input": "chung cu the manor, 91 nguyen huu canh, p.22, binh thanh, hcm",
+      "prediction": "Chung cư The Manor, Số 91, Đường Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, Thành phố Hồ Chí Minh",
+      "reference": "Chung cư The Manor, 91, Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, Thành phố Hồ Chí Minh",
+      "exact_match": false
+    },
+    {
+      "id": 34,
+      "input": "189 hung vuong, p2, tp.tan an, long an",
+      "prediction": "189, Hung Vuong, Phường 2, Thành phố Tân An, Tỉnh Long An",
+      "reference": "189, Hùng Vương, Phường 2, Thành phố Tân An, Tỉnh Long An",
+      "exact_match": false
+    },
+    {
+      "id": 35,
+      "input": "ap 1, xa my yen, h.ben luc, long an",
+      "prediction": "Ấp 1, Xã Mỹ Yến, Huyện Bến Lức, Tỉnh Long An",
+      "reference": "Ấp 1, Xã Mỹ Yên, Huyện Bến Lức, Tỉnh Long An",
+      "exact_match": false
+    },
+    {
+      "id": 36,
+      "input": "10 vo van tan, p6, tp soc trang, soc trang",
+      "prediction": "10, Võ Văn Tánh, Phường 6, Thành phố Sơn Tây, Tỉnh Sơn Tây",
+      "reference": "10, Võ Văn Tần, Phường 6, Thành phố Sóc Trăng, Tỉnh Sóc Trăng",
+      "exact_match": false
+    },
+    {
+      "id": 37,
+      "input": "chùa dơi, p3, tp.soc trang",
+      "prediction": "Chùa Dơi, Phường 3, Thành phố Số Cấp Tràng",
+      "reference": "Chùa Dơi, Phường 3, Thành phố Sóc Trăng",
+      "exact_match": false
+    },
+    {
+      "id": 38,
+      "input": "24 tran hung dao, p1, tp.bac lieu, bac lieu",
+      "prediction": "24, Trần Hưng Đạo, Phường 1, Thành phố Bắc Lễ, Tỉnh Bắc Lệ",
+      "reference": "24, Trần Hưng Đạo, Phường 1, Thành phố Bạc Liêu, Tỉnh Bạc Liêu",
+      "exact_match": false
+    },
+    {
+      "id": 39,
+      "input": "200 ly thuong kiet, p6, tp.ca mau",
+      "prediction": "200, Lý Thái Tổ, Phường 6, Thành phố Cà Mau",
+      "reference": "200, Lý Thường Kiệt, Phường 6, Thành phố Cà Mau",
+      "exact_match": false
+    },
+    {
+      "id": 40,
+      "input": "xom 5, thon hoanh, xa dai an, h.vu ban, nam dinh",
+      "prediction": "Xã Xóm 5, Thành phố Đà Nẵng, Tỉnh Quảng Ninh",
+      "reference": "Xóm 5, Thôn Hoành, Xã Đại An, Huyện Vụ Bản, Tỉnh Nam Định",
+      "exact_match": false
+    },
+    {
+      "id": 41,
+      "input": "tổ dân fố 1, fường nà hang, thị xã nà hang, tuyên quang",
+      "prediction": "Tổ dân Fố 1, Đường Nà Hang, Thị xã Nà Hang, Tỉnh Quảng Ngãi",
+      "reference": "Tổ dân phố 1, Phường Nà Hang, Thị xã Nà Hang, Tỉnh Tuyên Quang",
+      "exact_match": false
+    },
+    {
+      "id": 42,
+      "input": "11/11b ngách 20, ngõ 5, đường hoàng quốc việt, cầu giấy, hà nội",
+      "prediction": "11/11B, Ngách 20, Số 5, Đường Hoàng Quốc Việt, Phường Cầu Giấy, Thành phố Hà Nội",
+      "reference": "11/11B, Ngách 20, Ngõ 5, Đường Hoàng Quốc Việt, Quận Cầu Giấy, Hà Nội",
+      "exact_match": false
+    },
+    {
+      "id": 43,
+      "input": "dai hoc bach khoa ha noi, 1 dai co viet, q.hai ba trung, hn",
+      "prediction": "Đại học Bách khoa Hà Nội, Số 1, Đường Đại Cồ Việt, Quận Hai Bà Trưng, Hà Nội",
+      "reference": "Đại học Bách khoa Hà Nội, 1, Đại Cồ Việt, Quận Hai Bà Trưng, Hà Nội",
+      "exact_match": false
+    },
+    {
+      "id": 44,
+      "input": "TOA NHA FPT, 17 ZUY TAN, ZICH VONG HAU, CAU ZAY",
+      "prediction": "Tòa nhà FPT, Số 17, Đường Zuy Tan, Quận Chợ Láng, Hà Nội",
+      "reference": "Tòa nhà FPT, 17, Duy Tân, Phường Dịch Vọng Hậu, Quận Cầu Giấy, Hà Nội",
+      "exact_match": false
+    },
+    {
+      "id": 45,
+      "input": "37a hùng vương, p.4, q.5, hcm",
+      "prediction": "37A, Hùng Vương, Phường 4, Quận 5, Thành phố Hồ Chí Minh",
+      "reference": "37A, Hùng Vương, Phường 4, Quận 5, Thành phố Hồ Chí Minh",
+      "exact_match": true
+    }
+  ]
+}
