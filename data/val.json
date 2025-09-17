@@ -182,5 +182,425 @@
   {
     "text": "225 ndchieu, vo thi sau, q3, hcm",
     "label": "225, Nguyễn Đình Chiểu, Phường Võ Thị Sáu, Quận 3, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Kho B, Cong ty ABC, duong My Phuoc - Tan Van, TX Tan Uyen, Binh Duong",
+    "label": "Kho B, Công ty ABC, Đường Mỹ Phước - Tân Vạn, Thị xã Tân Uyên, Tỉnh Bình Dương"
+  },
+  {
+    "text": "118 Le Duan, P. Tam Phuoc, TP Bien Hoa, Dong Nai",
+    "label": "118, Đường Lê Duẩn, Phường Tam Phước, Thành phố Biên Hòa, Tỉnh Đồng Nai"
+  },
+  {
+    "text": "20/3A, hem 12, duong Tran Quang Khai, p. An Hai Bac, q. Son Tra, Da Nang",
+    "label": "20/3A, Hẻm 12, Đường Trần Quang Khải, Phường An Hải Bắc, Quận Sơn Trà, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "Số 6, tổ 4, thon Tan Lap, xa Hai Loc, h. Hau Loc, Thanh Hoa",
+    "label": "Số 6, Tổ 4, Thôn Tân Lập, Xã Hải Lộc, Huyện Hậu Lộc, Tỉnh Thanh Hóa"
+  },
+  {
+    "text": "Block A, can 12, Chung cu Ruby Tower, 44 Nguyen Van Linh, Hai Chau, Da Nang",
+    "label": "Block A, Căn 12, Chung cư Ruby Tower, 44, Đường Nguyễn Văn Linh, Quận Hải Châu, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "5 Nguyen Hue, Phu My Hung, Q.7, TPHCM",
+    "label": "5, Đường Nguyễn Huệ, Khu phức hợp Phú Mỹ Hưng, Phường Tân Phong, Quận 7, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "ap Binh Duc, xa Binh My, h. Chau Thanh, An Giang",
+    "label": "Ấp Bình Đức, Xã Bình Mỹ, Huyện Châu Thành, Tỉnh An Giang"
+  },
+  {
+    "text": "KDC An Phu 2 - so 11/7, duong 12, P. An Phu, TP. Thu Duc, HCM",
+    "label": "Khu dân cư An Phú 2, Số 11/7, Đường 12, Phường An Phú, Thành phố Thủ Đức, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "số 33, đ.23/10, phuong Huong Giang, thanh pho Hue",
+    "label": "Số 33, Đường 23/10, Phường Hương Giang, Thành phố Huế, Tỉnh Thừa Thiên Huế"
+  },
+  {
+    "text": "15, duong Le Thanh Ton, p. Ben Nghe, q.1, tphcm",
+    "label": "15, Đường Lê Thánh Tôn, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Lo 2, KCN Hoa Khanh, Q. Lien Chieu, Da Nang",
+    "label": "Lô 2, Khu Công Nghiệp Hòa Khánh, Quận Liên Chiểu, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "77, Duong Cach Mang Thang Tam, P. Quang Trung, TP Pleiku, Gia Lai",
+    "label": "Số 77, Đường Cách Mạng Tháng Tám, Phường Quang Trung, Thành phố Pleiku, Tỉnh Gia Lai"
+  },
+  {
+    "text": "99/4 hem 7, duong Nguyen Van Cu, p. An Hai Tay, q. Son Tra, Da Nang",
+    "label": "99/4, Hẻm 7, Đường Nguyễn Văn Cừ, Phường An Hải Tây, Quận Sơn Trà, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "27B ngõ 3, duong Bui Thi Xuan, p. Pham Ngu Lao, q.1",
+    "label": "27B, Ngõ 3, Đường Bùi Thị Xuân, Phường Phạm Ngũ Lão, Quận 1"
+  },
+  {
+    "text": "số 8, hẻm 2, đ. Yersin, P.10, Q.3, TP. HCM",
+    "label": "Số 8, Hẻm 2, Đường Yersin, Phường 10, Quận 3, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "34/6A hem 12, duong Vo Van Kiet, P. Xuan Khanh, Q. Ninh Kieu",
+    "label": "34/6A, Hẻm 12, Đường Võ Văn Kiệt, Phường Xuân Khánh, Quận Ninh Kiều"
+  },
+  {
+    "text": "Khu A, Lo 3, KCN Phuc Long, Dong Nai",
+    "label": "Khu A, Lô 3, Khu Công Nghiệp Phúc Long, Tỉnh Đồng Nai"
+  },
+  {
+    "text": "Can ho 7B-10, Chung cu Phu My, 50 duong Bach Dang, p.2, q.Nha Be",
+    "label": "Căn hộ 7B-10, Chung cư Phú Mỹ, 50, Đường Bạch Đằng, Phường 2, Quận Nhà Bè"
+  },
+  {
+    "text": "42/1, ngo 7, pho Tran Hung Dao Bac, Hoan Kiem, HN",
+    "label": "42/1, Ngõ 7, Phố Trần Hưng Đạo Bắc, Quận Hoàn Kiếm, Hà Nội"
+  },
+  {
+    "text": "xom 4, thon 1, xa Vinh Chau, h. Chau Thanh, Tien Giang",
+    "label": "Xóm 4, Thôn 1, Xã Vĩnh Châu, Huyện Châu Thành, Tỉnh Tiền Giang"
+  },
+  {
+    "text": "Lo 15, khu cong nghiep Nam Tien, Binh Duong",
+    "label": "Lô 15, Khu Công Nghiệp Nam Tiến, Tỉnh Bình Dương"
+  },
+  {
+    "text": "5A Tran Quoc Toan, P. Hoa An, Q. Cam Le, Da Nang",
+    "label": "5A, Đường Trần Quốc Toản, Phường Hòa An, Quận Cẩm Lệ, Đà Nẵng"
+  },
+  {
+    "text": "so 9, to 3, khu pho 2, p. Duc Giang, q. Long Bien, HN",
+    "label": "Số 9, Tổ 3, Khu phố 2, Phường Đức Giang, Quận Long Biên, Hà Nội"
+  },
+  {
+    "text": "67/3 hem 9, duong Nguyen Van Thoai, P. An Hai Bac, Q. Son Tra",
+    "label": "67/3, Hẻm 9, Đường Nguyễn Văn Thoại, Phường An Hải Bắc, Quận Sơn Trà"
+  },
+  {
+    "text": "thon 8, ap 2, xa Phuoc Loc, h. Tam Binh, Vinh Long",
+    "label": "Thôn 8, Ấp 2, Xã Phước Lộc, Huyện Tam Bình, Tỉnh Vĩnh Long"
+  },
+  {
+    "text": "Số 110, đ. Phan Anh, p.1, Vung Tau",
+    "label": "Số 110, Đường Phan Anh, Phường 1, Thành phố Vũng Tàu"
+  },
+  {
+    "text": "Nha may so 2, duong Nguyen Huu Tho, xa Phuoc Kien, Nha Be",
+    "label": "Nhà máy số 2, Đường Nguyễn Hữu Thọ, Xã Phước Kiển, Huyện Nhà Bè"
+  },
+  {
+    "text": "khu 4, to 2, duong Ly Thuong Kiet, p. Minh Khai, Thai Nguyen",
+    "label": "Khu 4, Tổ 2, Đường Lý Thường Kiệt, Phường Minh Khai, Thành phố Thái Nguyên"
+  },
+  {
+    "text": "số 2, đường CMT8, p. Tam Phuoc, Bien Hoa, Dong Nai",
+    "label": "Số 2, Đường Cách Mạng Tháng 8, Phường Tam Phước, Thành phố Biên Hòa, Tỉnh Đồng Nai"
+  },
+  {
+    "text": "Lot 11, KCN Hiep Phuoc, Nha Be, HCM",
+    "label": "Lô 11, Khu Công Nghiệp Hiệp Phước, Huyện Nhà Bè, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Tầng 6, toà A, 88A Nguyen Dinh Chieu, P.9, Q.3",
+    "label": "Tầng 6, Tòa A, 88A, Đường Nguyễn Đình Chiểu, Phường 9, Quận 3"
+  },
+  {
+    "text": "12/5 ngách 4, ngõ 17, Phố Giai Phong, P. Phuong Liet, Q. Thanh Xuan, Ha Noi",
+    "label": "12/5, Ngách 4, Ngõ 17, Phố Giải Phóng, Phường Phương Liệt, Quận Thanh Xuân, Hà Nội"
+  },
+  {
+    "text": "số 55, đường Hai Ba Trung, p. My An, q. Ninh Kieu",
+    "label": "Số 55, Đường Hai Bà Trưng, Phường Mỹ An, Quận Ninh Kiều"
+  },
+  {
+    "text": "Ap 1, xa My Hoa, h. Cao Lanh, Dong Thap",
+    "label": "Ấp 1, Xã Mỹ Hòa, Huyện Cao Lãnh, Tỉnh Đồng Tháp"
+  },
+  {
+    "text": "77/9, hem 2, duong Phuoc Long B, p. Phuoc Long B, Thu Duc",
+    "label": "77/9, Hẻm 2, Đường Phước Long B, Phường Phước Long B, Thành phố Thủ Đức"
+  },
+  {
+    "text": "So 200, duong Tran Hung Dao, phuong Tan An, Thu Dau Mot, BD",
+    "label": "Số 200, Đường Trần Hưng Đạo, Phường Tân An, Thành phố Thủ Dầu Một, Tỉnh Bình Dương"
+  },
+  {
+    "text": "B3-14, Chung cu Ecohome, duong Lam Hoc, p. Ha Dong, HaNoi",
+    "label": "B3-14, Chung cư Ecohome, Đường Lam Học, Phường Hà Đông, Hà Nội"
+  },
+  {
+    "text": "kho so 4, cong ty TNHH ABC, duong Le Trong Tan, Binh Tan, HCM",
+    "label": "Kho số 4, Công ty TNHH ABC, Đường Lê Trọng Tấn, Quận Bình Tân, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "12A/8 duong Cach Mang, p. Khai Quang, TP Vinh",
+    "label": "12A/8, Đường Cách Mạng, Phường Khai Quang, Thành phố Vinh"
+  },
+  {
+    "text": "Số 1, đường Bà Triệu, P. Trần Hưng Đạo, Q. Hoan Kiem",
+    "label": "Số 1, Đường Bà Triệu, Phường Trần Hưng Đạo, Quận Hoàn Kiếm"
+  },
+  {
+    "text": "Lô E7-3, Khu CN Dung Quat, Quang Ngai",
+    "label": "Lô E7-3, Khu Công Nghiệp Dung Quất, Tỉnh Quảng Ngãi"
+  },
+  {
+    "text": "Số 28, ngách 5, ngõ 102, đường Phạm Văn Đồng, P. Co Nhue 2, Q. Bac Tu Liem, HN",
+    "label": "Số 28, Ngách 5, Ngõ 102, Đường Phạm Văn Đồng, Phường Cổ Nhuế 2, Quận Bắc Từ Liêm, Hà Nội"
+  },
+  {
+    "text": "Block C, Can 05, chung cu Sky Garden 3, 88 Pham The Hien, P.7, Q.8",
+    "label": "Block C, Căn 05, Chung cư Sky Garden 3, 88, Phạm Thế Hiển, Phường 7, Quận 8"
+  },
+  {
+    "text": "45-47 D. Nguyen Van Cu, P.2, Q.5, HCM",
+    "label": "45-47, Đường Nguyễn Văn Cừ, Phường 2, Quận 5, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "lầu 3, Tòa Vincom Plaza, 191 Ba Trieu, HN",
+    "label": "Lầu 3, Tòa Vincom Plaza, 191, Đường Bà Triệu, Hà Nội"
+  },
+  {
+    "text": "Số 8, ngõ 19, đường Trần Quang Khải, P. Vĩnh Tuy, Hai Bà Trưng, Ha Noi",
+    "label": "Số 8, Ngõ 19, Đường Trần Quang Khải, Phường Vĩnh Tuy, Quận Hai Bà Trưng, Hà Nội"
+  },
+  {
+    "text": "KCN VSIP II-A, Dĩ An, Binh Duong",
+    "label": "Khu Công Nghiệp VSIP II-A, Thị xã Dĩ An, Tỉnh Bình Dương"
+  },
+  {
+    "text": "Can ho A1-02, Chung cu Diamond Hill, 102 Nguyen Luong Bang, Phu My Hung, Q.7, TPHCM",
+    "label": "Căn hộ A1-02, Chung cư Diamond Hill, 102, Đường Nguyễn Lương Bằng, Khu Phú Mỹ Hưng, Quận 7, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "12 Bui Vien, P. Pham Ngu Lao, Q.1, TP HCM",
+    "label": "12, Đường Bùi Viện, Phường Phạm Ngũ Lão, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Ngách 5, ngõ 120, phố Tạ Quang Bửu, Hai Bà Trưng, HaNoi",
+    "label": "Ngách 5, Ngõ 120, Phố Tạ Quang Bửu, Quận Hai Bà Trưng, Hà Nội"
+  },
+  {
+    "text": "Số 3/2, hẻm 8, đ. Lê Hồng Phong, P. Đông Khê, TP. Hải Phòng",
+    "label": "Số 3/2, Hẻm 8, Đường Lê Hồng Phong, Phường Đông Khê, Thành phố Hải Phòng"
+  },
+  {
+    "text": "LOT F4-2, KCN Nhơn Trạch 2, Nhon Trach, Dong Nai",
+    "label": "Lô F4-2, Khu Công Nghiệp Nhơn Trạch 2, Huyện Nhơn Trạch, Tỉnh Đồng Nai"
+  },
+  {
+    "text": "Số 22E, thôn Hạ, xã Lộc An, H. Bảo Lâm, Lam Dong",
+    "label": "Số 22E, Thôn Hạ, Xã Lộc An, Huyện Bảo Lâm, Tỉnh Lâm Đồng"
+  },
+  {
+    "text": "12A ngach 6, ngo 30, pho Đội Cấn, Ba Dinh, ha noi",
+    "label": "12A, Ngách 6, Ngõ 30, Phố Đội Cấn, Quận Ba Đình, Hà Nội"
+  },
+  {
+    "text": "Số 5, dãy B, tổ 8, khu 4, xã Vĩnh Thanh, h. Nhơn Trạch, Dong Nai",
+    "label": "Số 5, Dãy B, Tổ 8, Khu 4, Xã Vĩnh Thanh, Huyện Nhơn Trạch, Tỉnh Đồng Nai"
+  },
+  {
+    "text": "Tầng 3, Suite 301, Tòa nhà Oceanic, 99 Nguyen Tat Thanh, Nha Trang",
+    "label": "Tầng 3, Suite 301, Tòa nhà Oceanic, 99, Nguyễn Tất Thành, Thành phố Nha Trang"
+  },
+  {
+    "text": "Lot 7, cụm CN Tịnh Phong, Thoai Son, An Giang",
+    "label": "Lô 7, Cụm Công Nghiệp Tịnh Phong, Huyện Thoại Sơn, Tỉnh An Giang"
+  },
+  {
+    "text": "Số 14, ấp Tân Lập, xã An Khánh, h. Châu Thành, Tay Ninh",
+    "label": "Số 14, Ấp Tân Lập, Xã An Khánh, Huyện Châu Thành, Tỉnh Tây Ninh"
+  },
+  {
+    "text": "12B/1 ngo 8, pho Nguyen Trai, p. Phuoc Loc, Q. Nha Be",
+    "label": "12B/1, Ngõ 8, Phố Nguyễn Trãi, Phường Phước Lộc, Quận Nhà Bè"
+  },
+  {
+    "text": "số 21/4 hem 3, đ. Nguyễn Xiển, p. Hạ Đình, q. Thanh Xuân",
+    "label": "Số 21/4, Hẻm 3, Đường Nguyễn Xiển, Phường Hạ Đình, Quận Thanh Xuân"
+  },
+  {
+    "text": "Ap 12, Xa Phu My, H. My Tho, Tien Giang",
+    "label": "Ấp 12, Xã Phú Mỹ, Huyện Mỹ Tho, Tỉnh Tiền Giang"
+  },
+  {
+    "text": "Số 6, ngõ 2A, phố Xuân Diệu, Tây Hồ, Ha Noi",
+    "label": "Số 6, Ngõ 2A, Phố Xuân Diệu, Quận Tây Hồ, Hà Nội"
+  },
+  {
+    "text": "Căn hộ 701, toà S2, Sunshine City, 16 Pham Hung, My Dinh, Nam Tu Liem",
+    "label": "Căn hộ 701, Tòa S2, Sunshine City, 16, Phạm Hùng, Mỹ Đình, Quận Nam Từ Liêm"
+  },
+  {
+    "text": "Tầng 6, VP 602, Tòa N, 11 LLeLoi, P.BT, Q.1, TP.HCM",
+    "label": "Tầng 6, Văn phòng 602, Tòa N, 11, Lê Lợi, Phường Bến Thành, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 21, tổ 4, kp 2, P.TThuan, Q.7, TP.HCM",
+    "label": "Số 21, Tổ 4, Khu phố 2, Phường Tân Thuận, Quận 7, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Căn 8, Lầu 5, Tòa B, 5A TrPhu, P.VNinh, Q.NH, TP.Pleiku",
+    "label": "Căn 8, Lầu 5, Tòa B, 5A, Trần Phú, Phường Vinh Ninh, Quận Ngũ Hành Sơn, Thành phố Pleiku"
+  },
+  {
+    "text": "Tầng trệt, Shop 02, VMMall, 50 LLeLoi, P.TP, Q.TB, TP.HCM",
+    "label": "Tầng trệt, Shop 02, Trung tâm thương mại, 50, Lê Lợi, Phường Tân Phong, Quận Tân Bình, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 2, ngõ 3, phố NKha, P.KhaiTh, Q.HK, TP.HN",
+    "label": "Số 2, Ngõ 3, Phố Nguyễn Khắc Hiếu, Phường Khai Thái, Quận Hoàn Kiếm, Thành phố Hà Nội"
+  },
+  {
+    "text": "Lot H2, KCN LHau, H.CG, LA",
+    "label": "Lô H2, Khu công nghiệp Long Hậu, Huyện Cần Giuộc, Long An"
+  },
+  {
+    "text": "Số 14, ngõ 8, phố NTranTruc, P.KT, Q.HK, TP.HN",
+    "label": "Số 14, Ngõ 8, Phố Nguyễn Trãi, Phường Khương Thượng, Quận Hoàn Kiếm, Thành phố Hà Nội"
+  },
+  {
+    "text": "Căn hộ 1208, Blk B, The Gold View, 346 BVandon, P.TanPD, Q.Q4, TP.HCM",
+    "label": "Căn hộ 1208, Block B, The Gold View, 346, Bến Vân Đồn, Phường Tân Phong, Quận 4, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 6, ấp 3, xã AnPhu, H.MangT, VL",
+    "label": "Số 6, Ấp 3, Xã An Phú, Huyện Mang Thít, Vĩnh Long"
+  },
+  {
+    "text": "Tầng 3, Shop 7, TT TM, 300 NKM, P.TT, Q.GV, TP.HCM",
+    "label": "Tầng 3, Shop 7, Trung tâm thương mại, 300, Nguyễn Kiệm, Phường Tân Thuận, Quận Gò Vấp, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 11, ngách 4, ngõ 15, phố CTran, P.HB, Q.HK, TP.HN",
+    "label": "Số 11, Ngách 4, Ngõ 15, Phố Cửa Nam Trần, Phường Hàng Bài, Quận Hoàn Kiếm, Thành phố Hà Nội"
+  },
+  {
+    "text": "Lo 4, cum CN AnNhon, TX.AnN, BD",
+    "label": "Lô 4, Cụm công nghiệp An Nhơn, Thị xã An Nhơn, Bình Định"
+  },
+  {
+    "text": "Số 28, tổ 6, khu phố 3, P.PT, Q.NB, TP.CTh",
+    "label": "Số 28, Tổ 6, Khu phố 3, Phường Phú Thứ, Quận Ninh Kiều, Thành phố Cần Thơ"
+  },
+  {
+    "text": "Căn 3, Lầu 2, CT1, KĐT XaLa, 25 XaLa, P.SDong, Q.HD, TP.HN",
+    "label": "Căn 3, Lầu 2, CT1, Khu đô thị Xa La, 25, Xa La, Phường Sài Đồng, Quận Hà Đông, Thành phố Hà Nội"
+  },
+  {
+    "text": "Số 4, dãy B, ấp TanLoc, xã VHL, H.HG, KG",
+    "label": "Số 4, Dãy B, Ấp Tân Lộc, Xã Vĩnh Hậu, Huyện Hòa Bình, Kiên Giang"
+  },
+  {
+    "text": "Tầng 5, VP 501, Tòa S, 9 NDu, P.BN, Q.1, TP.HCM",
+    "label": "Tầng 5, Văn phòng 501, Tòa S, 9, Nguyễn Du, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 17, ngõ 9, phố PVanTri, P.AHoa, Q.hc, TP.DN",
+    "label": "Số 17, Ngõ 9, Phố Phan Văn Trị, Phường An Hòa, Quận Hải Châu, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "Lot 2F, KCN MyTho, MyTho",
+    "label": "Lô 2F, Khu công nghiệp Mỹ Tho, Mỹ Tho"
+  },
+  {
+    "text": "Số 2, ngõ 6, phố BTri, P.TT, Q.HK, TP.HN",
+    "label": "Số 2, Ngõ 6, Phố Bà Triệu, Phường Tràng Tiền, Quận Hoàn Kiếm, Thành phố Hà Nội"
+  },
+  {
+    "text": "Số 6, ngõ 3, phố Xthuy, P.Nchinh, Q.txuan, TP.HN",
+    "label": "Số 6, Ngõ 3, Phố Xuân Thủy, Phường Nhân Chính, Quận Thanh Xuân, Thành phố Hà Nội"
+  },
+  {
+    "text": "Căn 10, Lầu 4, Tòa B, 15 LVanLuong, P.Nchinh, Q.txuan, TP.HN",
+    "label": "Căn 10, Lầu 4, Tòa B, 15, Lê Văn Lương, Phường Nhân Chính, Quận Thanh Xuân, Thành phố Hà Nội"
+  },
+  {
+    "text": "12/9 hẻm 5, phố Cgiay, P.KD, Q.CGiay, TP.HN",
+    "label": "12/9, Hẻm 5, Phố Cầu Giấy, Phường Khuất Duy Tiến, Quận Cầu Giấy, Thành phố Hà Nội"
+  },
+  {
+    "text": "Tầng 2, Shop 06, TT TM, 220 NKhang, P.YHoa, Q.CGiay, TP.HN",
+    "label": "Tầng 2, Shop 06, Trung tâm thương mại, 220, Nguyễn Khang, Phường Yên Hòa, Quận Cầu Giấy, Thành phố Hà Nội"
+  },
+  {
+    "text": "Số 3, ngõ 7, phố LVanTam, P.ND, Q.BT, TP.HCM",
+    "label": "Số 3, Ngõ 7, Phố Lê Văn Tám, Phường Nhân Đạo, Quận Bình Thạnh, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Căn 407, Block A, 88A NTrungTinh, P.1, Q.TB, TP.HCM",
+    "label": "Căn 407, Block A, 88A, Nguyễn Trung Trực, Phường 1, Quận Tân Bình, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 8, ngách 2, ngõ 14, phố NDu, P.BnGhe, Q.1, TP.HCM",
+    "label": "Số 8, Ngách 2, Ngõ 14, Phố Nguyễn Du, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "12B/5, hẻm 3, đ. NTrai, P.4, Q.5, TP.HCM",
+    "label": "12B/5, Hẻm 3, Đường Nguyễn Trãi, Phường 4, Quận 5, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 21, ngõ 6, phố PVanTri, P.AHoa, Q.hc, TP.DN",
+    "label": "Số 21, Ngõ 6, Phố Phan Văn Trị, Phường An Hòa, Quận Hải Châu, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "Căn 2B, Lầu 3, CT1, KĐT MoLao, 25 XaLa, P.SDong, Q.HD, TP.HN",
+    "label": "Căn 2B, Lầu 3, CT1, Khu đô thị Mỗ Lao, 25, Xa La, Phường Sài Đồng, Quận Hà Đông, Thành phố Hà Nội"
+  },
+  {
+    "text": "Số 9, tổ 5, kp 3, P.TThuan, Q.7, TP.HCM",
+    "label": "Số 9, Tổ 5, Khu phố 3, Phường Tân Thuận, Quận 7, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Lot E4, KCN ANgoc, TX.BC, BD",
+    "label": "Lô E4, Khu công nghiệp An Ngọc, Thị xã Bến Cát, Bình Dương"
+  },
+  {
+    "text": "Số 14, ngõ 4, phố NTranTruc, P.KT, Q.HK, TP.HN",
+    "label": "Số 14, Ngõ 4, Phố Nguyễn Trãi, Phường Khương Thượng, Quận Hoàn Kiếm, Thành phố Hà Nội"
+  },
+  {
+    "text": "Tầng 6, VP 602, Tòa N, 11 LLeLoi, P.BT, Q.1, TP.HCM",
+    "label": "Tầng 6, Văn phòng 602, Tòa N, 11, Lê Lợi, Phường Bến Thành, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 4, ngách 3, phố Xthuy, P.DVong, Q.CGiay, TP.HN",
+    "label": "Số 4, Ngách 3, Phố Xuân Thủy, Phường Dịch Vọng, Quận Cầu Giấy, Thành phố Hà Nội"
+  },
+  {
+    "text": "Căn 1203, Blk B, The Gold View, 346 BVandon, P.TanP, Q.Q4, TP.HCM",
+    "label": "Căn 1203, Block B, The Gold View, 346, Bến Vân Đồn, Phường Tân Phong, Quận 4, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Số 2, ấp TanLoc, xã VHL, H.HG, KG",
+    "label": "Số 2, Ấp Tân Lộc, Xã Vĩnh Hậu, Huyện Hòa Bình, Kiên Giang"
+  },
+  {
+    "text": "Số 7, ngõ 5, phố TPhu, P.MA, Q.HC, TP.DN",
+    "label": "Số 7, Ngõ 5, Phố Trần Phú, Phường Mỹ An, Quận Hải Châu, Thành phố Đà Nẵng"
+  },
+  {
+    "text": "Căn 501, Tầng 5, Toà A, 3 NDu, P.BN, Q.1, TP.HCM",
+    "label": "Căn 501, Tầng 5, Tòa A, 3, Nguyễn Du, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh"
+  },
+  {
+    "text": "Lot K2, KCN LongHau, H.CanG, LA",
+    "label": "Lô K2, Khu công nghiệp Long Hậu, Huyện Cần Giuộc, Long An"
+  },
+  {
+    "text": "Số 11, ngách 9, ngõ 2, phố NCTru, P.TBinh, Q.NB, TP.HN",
+    "label": "Số 11, Ngách 9, Ngõ 2, Phố Nguyễn Công Trứ, Phường Thanh Bình, Quận Ngô Quyền, Thành phố Hà Nội"
+  },
+  {
+    "text": "Tầng trệt, Shop 03, TT TM, 55 HGVuong, P.5, Q.RG, TP.RG",
+    "label": "Tầng trệt, Shop 03, Trung tâm thương mại, 55, Hùng Vương, Phường 5, Quận Rạch Giá, Thành phố Rạch Giá"
+  },
+  {
+    "text": "Số 23, ngõ 6, phố LVanLuong, P.Nchinh, Q.txuan, TP.HN",
+    "label": "Số 23, Ngõ 6, Phố Lê Văn Lương, Phường Nhân Chính, Quận Thanh Xuân, Thành phố Hà Nội"
   }
 ]
