@@ -20,7 +20,7 @@ training_arguments:
   eval_strategy: "epoch"
   save_strategy: "epoch"
   save_only_model: true
-  save_total_limit: 3
+  save_total_limit: 1
   learning_rate: 2e-4
   lr_scheduler_type: "linear"
   warmup_ratio: 0.1
@@ -32,6 +32,7 @@ training_arguments:
   report_to: "mlflow"
   logging_dir: "./logs"
   load_best_model_at_end: true
+  greater_is_better: true
   torch_compile: false
   overwrite_output_dir: true
   metric_for_best_model: "eval_rouge_l"
