@@ -11,8 +11,8 @@ training_arguments:
   do_predict: true
   output_dir: "./finetuning-checkpoints"
   num_train_epochs: 5
-  per_device_train_batch_size: 16
-  per_device_eval_batch_size: 16
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
   gradient_accumulation_steps: 1
   eval_accumulation_steps: 1
   packing: true
@@ -42,5 +42,6 @@ training_arguments:
 seed: 42
 token: null
 logging:
+  verbose: true
   mlflow:
     experiment_name: "llm-finetuning"
