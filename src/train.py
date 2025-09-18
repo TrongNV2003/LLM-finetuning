@@ -32,7 +32,7 @@ from src.callbacks.time_callback import TimeLoggerCallback
 from src.callbacks.memory_callback import MemoryLoggerCallback
 from src.utils import find_all_linear_names, load_dataset
 from src.metrics import EvaluateMetrics, compute_metrics_fn
-from src.prompts import PROMPT_SYSTEM, PROMPT_TEMPLATE
+from src.prompts import PROMPT_TEMPLATE
 
 load_dotenv()
 
@@ -72,7 +72,6 @@ class Dataloader:
         if label is not None:
             prompt_str = PROMPT_TEMPLATE.format(text=text)
             messages = [
-                {"role": "system", "content": PROMPT_SYSTEM},
                 {"role": "user", "content": prompt_str},
                 {"role": "assistant", "content": label}
             ]
@@ -86,7 +85,6 @@ class Dataloader:
         else:
             prompt_str = PROMPT_TEMPLATE.format(text=text)
             messages = [
-                {"role": "system", "content": PROMPT_SYSTEM},
                 {"role": "user", "content": prompt_str}
             ]
             
@@ -174,8 +172,9 @@ class LLMFinetuning:
         )
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-
-        logger.warning(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
+        self.verbose = cfg.logging.verbose
+        
+        logger.info(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
 
         bnb_config = None
         self.compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
@@ -214,12 +213,6 @@ class LLMFinetuning:
             torch_dtype=self.compute_dtype,
             low_cpu_mem_usage=self.model_args.low_cpu_mem_usage,
         )
-        
-        if hasattr(self.model, 'gradient_checkpointing_enable'):
-            self.model.gradient_checkpointing_enable()
-            logger.info("✅ Gradient checkpointing enabled")
-        else:
-            logger.warning("⚠️ Model doesn't support gradient checkpointing")
 
         if self.model_args.lora is not None and self.model_args.lora != 'None':
             modules = find_all_linear_names(self.model)
@@ -241,9 +234,9 @@ class LLMFinetuning:
         
             train_p, tot_p = self.model.get_nb_trainable_parameters()
             logger.info(f"Model loaded: {self.model_args.model_name_or_path}")
-            logger.warning(f'Trainable parameters:      {train_p/1e6:.2f}M')
-            logger.warning(f'Total parameters:          {tot_p/1e6:.2f}M')
-            logger.warning(f'% of trainable parameters: {100*train_p/tot_p:.2f}%')
+            logger.info(f'Trainable parameters:      {train_p/1e6:.2f}M')
+            logger.info(f'Total parameters:          {tot_p/1e6:.2f}M')
+            logger.info(f'% of trainable parameters: {100*train_p/tot_p:.2f}%')
             
         self.metrics = EvaluateMetrics()
     
@@ -330,14 +323,14 @@ class LLMFinetuning:
     def predict(self, text: str) -> str:
         self.model.eval()
         
-        if hasattr(self.model, 'peft_config'):
-            logger.debug("✅ LoRA adapters are active")
-        else:
-            logger.warning("⚠️ LoRA adapters might not be active")
+        if self.verbose:
+            if hasattr(self.model, 'peft_config'):
+                logger.debug("✅ LoRA adapters are active")
+            else:
+                logger.warning("⚠️ LoRA adapters might not be active")
         
         prompt_str = PROMPT_TEMPLATE.format(text=text)
         messages = [
-            {"role": "system", "content": PROMPT_SYSTEM},
             {"role": "user", "content": prompt_str},
         ]
         
@@ -397,8 +390,9 @@ class LLMFinetuning:
         input_length = inputs["input_ids"].shape[1]
         generated_tokens = outputs[0][input_length:]
         
-        logger.debug(f"Generated tokens shape: {generated_tokens.shape}")
-        logger.debug(f"Generated token IDs: {generated_tokens[:10]}")
+        if self.verbose:
+            logger.debug(f"Generated tokens shape: {generated_tokens.shape}")
+            logger.debug(f"Generated token IDs: {generated_tokens[:10]}")
         
         if len(generated_tokens) == 1:
             eos_token_id = self.tokenizer.eos_token_id
@@ -440,30 +434,6 @@ def main(cfg: DictConfig):
         
         logger.info(f"Mixed precision: BF16={training_args.bf16}, FP16={training_args.fp16}, TF32={training_args.tf32}")
         
-        if not (hasattr(cfg.model, 'lora') and cfg.model.lora is not None and cfg.model.lora != 'None'):
-            logger.info("Adjusting training parameters for full fine-tuning with memory optimization...")
-            original_batch_size = training_args.per_device_train_batch_size
-            training_args.per_device_train_batch_size = min(original_batch_size, 1)
-            training_args.per_device_eval_batch_size = min(training_args.per_device_eval_batch_size, 1)
-            
-            effective_batch_size = max(original_batch_size, 8)
-            training_args.gradient_accumulation_steps = max(
-                training_args.gradient_accumulation_steps, 
-                effective_batch_size // training_args.per_device_train_batch_size
-            )
-            
-            training_args.max_grad_norm = 1.0
-            
-            logger.info(f"🔥 EXTREME MEMORY OPTIMIZATION ENABLED")
-            logger.info(f"Batch size: {training_args.per_device_train_batch_size}")
-            logger.info(f"Gradient accumulation: {training_args.gradient_accumulation_steps}")
-            logger.info(f"Effective batch size: {training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps}")
-        else:
-            logger.info("Using LoRA - applying moderate memory optimization...")
-            training_args.per_device_train_batch_size = min(training_args.per_device_train_batch_size, 4)
-            training_args.per_device_eval_batch_size = min(training_args.per_device_eval_batch_size, 4)
-            logger.info(f"LoRA batch size: {training_args.per_device_train_batch_size}")
-        
         datasets_processed = dataloader.get_processed_datasets(training_args)
         train_dataset = datasets_processed.get("train")
         val_dataset = datasets_processed.get("validation")
@@ -485,20 +455,6 @@ def main(cfg: DictConfig):
             logger.info("Evaluating model on test dataset...")
             trainer.evaluate()
 
-
-    # Test on sample addresses
-        # logger.info("Testing on sample addresses...")
-        # test_addresses = [
-        #     "68, Xthuy, Cgiay, HN",
-        #     "123, Ngtroi, Q1, HCM",
-        #     "45, Lthanh, Hkiem, HN"
-        # ]
-        
-        # for address in test_addresses:
-        #     result = trainer.predict(address)
-        #     logger.info(f"Input: {address}")
-        #     logger.info(f"Output: {result}")
-        #     logger.info("-" * 50)
 
 if __name__ == "__main__":
     main()
