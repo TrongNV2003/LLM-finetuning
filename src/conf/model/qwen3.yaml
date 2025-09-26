@@ -16,5 +16,6 @@ lora:
   lora_dropout: 0.05
   bias: "none" # "all"
   modules_to_save:
+  use_dora: true
 
 qlora: false

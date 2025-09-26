@@ -208,7 +208,6 @@ class LLMFinetuning:
             cache_dir=self.model_args.cache_dir,
             revision=self.model_args.revision,
             quantization_config=bnb_config,
-            device_map="auto",
             attn_implementation=self.model_args.attn_implementation,
             torch_dtype=self.compute_dtype,
             low_cpu_mem_usage=self.model_args.low_cpu_mem_usage,
@@ -229,6 +228,7 @@ class LLMFinetuning:
                 lora_dropout=self.model_args.lora.lora_dropout,
                 bias=self.model_args.lora.bias,
                 task_type=TaskType.CAUSAL_LM,
+                use_dora=self.model_args.lora.use_dora,
             )
             self.model = get_peft_model(self.model, lora_config)
         
@@ -276,6 +276,12 @@ class LLMFinetuning:
         test_data_path = os.path.join(parent_dir, self.data_args.test_file)
         test_data = load_dataset(test_data_path)
         
+        if self.verbose:
+            if hasattr(self.model, 'peft_config'):
+                logger.debug("✅ LoRA adapters are active")
+            else:
+                logger.warning("⚠️ LoRA adapters might not be active")
+
         predictions = []
         references = []
         inputs = []
@@ -323,12 +329,6 @@ class LLMFinetuning:
     def predict(self, text: str) -> str:
         self.model.eval()
         
-        if self.verbose:
-            if hasattr(self.model, 'peft_config'):
-                logger.debug("✅ LoRA adapters are active")
-            else:
-                logger.warning("⚠️ LoRA adapters might not be active")
-        
         prompt_str = PROMPT_TEMPLATE.format(text=text)
         messages = [
             {"role": "user", "content": prompt_str},
@@ -370,11 +370,15 @@ class LLMFinetuning:
         top_k: int = 20,
         repetition_penalty: float = 1.05,
     ) -> str:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         inputs = self.tokenizer(prompt, return_tensors="pt")
-        inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        self.model.to(device)
         
         with torch.no_grad():
-            with torch.autocast(device_type='cuda', dtype=self.compute_dtype):
+            autocast_enabled = torch.cuda.is_available() and self.compute_dtype in (torch.float16, torch.bfloat16)
+            logger.debug(f"Autocast enabled: {autocast_enabled}, compute dtype: {self.compute_dtype}")
+            with torch.autocast(device_type='cuda' if autocast_enabled else 'cpu', dtype=self.compute_dtype, enabled=autocast_enabled):
                 outputs = self.model.generate(
                     **inputs,
                     max_new_tokens=max_new_tokens,
