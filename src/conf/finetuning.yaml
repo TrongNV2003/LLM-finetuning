@@ -39,9 +39,17 @@ training_arguments:
   logging_strategy: steps
   seed: 42
 
+evaluation_arguments:
+  max_concurrent_queries: 4
+  max_new_tokens: 256
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.1
+  do_sample: true
+
 seed: 42
 token: null
 logging:
-  verbose: true
   mlflow:
     experiment_name: "llm-finetuning"

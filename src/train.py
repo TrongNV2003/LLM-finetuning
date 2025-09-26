@@ -1,6 +1,6 @@
 import os
 os.environ["HYDRA_FULL_ERROR"] = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
@@ -13,10 +13,12 @@ import json
 import hydra
 import torch
 import mlflow
+import asyncio
 from loguru import logger
 from dotenv import load_dotenv
 from datasets import Dataset, DatasetDict
 from omegaconf import DictConfig, ListConfig
+from concurrent.futures import ThreadPoolExecutor
 from transformers import (
     AutoConfig,
     AutoTokenizer,
@@ -159,6 +161,7 @@ class Dataloader:
 
 class LLMFinetuning:
     def __init__(self, cfg: DictConfig) -> None:
+        self.cfg = cfg
         self.data_args = cfg.dataset
         self.model_args = cfg.model
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -172,7 +175,6 @@ class LLMFinetuning:
         )
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.verbose = cfg.logging.verbose
         
         logger.info(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
 
@@ -272,30 +274,42 @@ class LLMFinetuning:
                 
         return trainer
     
-    def evaluate(self):
+    async def evaluate(self):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(device)
+        self.model.eval()
+        
         test_data_path = os.path.join(parent_dir, self.data_args.test_file)
         test_data = load_dataset(test_data_path)
         
-        if self.verbose:
-            if hasattr(self.model, 'peft_config'):
-                logger.debug("✅ LoRA adapters are active")
-            else:
-                logger.warning("⚠️ LoRA adapters might not be active")
+        max_concurrent_queries = self.cfg.evaluation_arguments.max_concurrent_queries
+        
+        if hasattr(self.model, 'peft_config'):
+            logger.debug("✅ LoRA adapters are active")
+        else:
+            logger.warning("⚠️ LoRA adapters might not be active")
 
+        logger.info(f"Processing {len(test_data)} samples with max {max_concurrent_queries} concurrent queries")
+        
+        semaphore = asyncio.Semaphore(max_concurrent_queries)
+        
+        async def predict(idx, sample):
+            async with semaphore:
+                return await self._predict(idx, sample, device)
+        
+        tasks = [predict(idx, sample) for idx, sample in enumerate(test_data)]
+        
+        query_results = await asyncio.gather(*tasks)
+        
         predictions = []
         references = []
         inputs = []
         
-        for item in test_data:
-            input_text = item['text']
-            reference = item['label']
-            
-            prediction = self.predict(input_text)
-            
-            predictions.append(prediction)
-            references.append(reference)
-            inputs.append(input_text)
-
+        for idx, pred, ref, inp in sorted(query_results, key=lambda x: x[0]):
+            predictions.append(pred)
+            references.append(ref)
+            inputs.append(inp)
+        
         result = self.metrics.metrics_evaluate(predictions, references)
         self.metrics.print_evaluation_report(result, "Final Model Evaluation")
 
@@ -325,88 +339,82 @@ class LLMFinetuning:
         logger.info(f"Evaluation results saved to {results_file}")
         
         return result
-    
-    def predict(self, text: str) -> str:
-        self.model.eval()
+
+    async def _predict(self, idx, sample, device):
+        loop = asyncio.get_event_loop()
         
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = loop.run_in_executor(
+                executor, 
+                self._run_single_inference, 
+                idx, sample, device
+            )
+            return await future
+    
+    def _run_single_inference(self, idx, sample, device):
+        text = sample['text']
+        label = sample['label']
+        
+        prompt = self.format_prompt(text)
+        eval_args = self.cfg.evaluation_arguments
+        
+        tokenized = self.tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512,
+        )
+        tokenized = {k: v.to(device) for k, v in tokenized.items()}
+        
+        try:
+            with torch.no_grad():
+                autocast_enabled = torch.cuda.is_available() and self.compute_dtype in (torch.float16, torch.bfloat16)
+                with torch.autocast(device_type='cuda' if autocast_enabled else 'cpu', 
+                                  dtype=self.compute_dtype, enabled=autocast_enabled):
+                    output = self.model.generate(
+                        **tokenized,
+                        max_new_tokens=eval_args.max_new_tokens,
+                        temperature=eval_args.temperature,
+                        top_p=eval_args.top_p,
+                        top_k=eval_args.top_k,
+                        repetition_penalty=eval_args.repetition_penalty,
+                        pad_token_id=self.tokenizer.eos_token_id,
+                        eos_token_id=self.tokenizer.eos_token_id,
+                        do_sample=eval_args.do_sample,
+                    )
+            
+            input_length = tokenized["input_ids"].shape[1]
+            generated_tokens = output[0][input_length:]
+            generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
+            
+            if generated_text.startswith("### Địa chỉ hoàn thiện:"):
+                generated_text = generated_text.replace("### Địa chỉ hoàn thiện:", "").strip()
+            elif generated_text.startswith("Địa chỉ hoàn thiện:"):
+                generated_text = generated_text.replace("Địa chỉ hoàn thiện:", "").strip()
+            
+            logger.debug(f"Sample {idx}: Input='{text}', Output='{generated_text}'")
+            
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                
+            return idx, generated_text, label, text
+            
+        except RuntimeError as e:
+            raise e
+
+    def format_prompt(self, text: str) -> str:
         prompt_str = PROMPT_TEMPLATE.format(text=text)
         messages = [
-            {"role": "user", "content": prompt_str},
+            {"role": "user", "content": prompt_str}
         ]
-        
-        prompt = self.tokenizer.apply_chat_template(
+            
+        return self.tokenizer.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
             enable_thinking=False
         )
 
-        result = self._generate_text(
-            prompt,
-            max_new_tokens=256,
-            temperature=0.3,
-            top_p=0.9,
-            top_k=50,
-            repetition_penalty=1.1,
-        )
-        
-        logger.debug(f"Raw prediction: '{result}'")
-        
-        result = result.strip()
-        
-        if result.startswith("### Địa chỉ hoàn thiện:"):
-            result = result.replace("### Địa chỉ hoàn thiện:", "").strip()
-        
-        logger.debug(f"Cleaned prediction: '{result}'")
-        
-        return result
-
-    def _generate_text(
-        self,
-        prompt: str,
-        max_new_tokens: int = 100,
-        temperature: float = 0.7,
-        top_p: float = 0.8,
-        top_k: int = 20,
-        repetition_penalty: float = 1.05,
-    ) -> str:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        inputs = self.tokenizer(prompt, return_tensors="pt")
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-        self.model.to(device)
-        
-        with torch.no_grad():
-            autocast_enabled = torch.cuda.is_available() and self.compute_dtype in (torch.float16, torch.bfloat16)
-            logger.debug(f"Autocast enabled: {autocast_enabled}, compute dtype: {self.compute_dtype}")
-            with torch.autocast(device_type='cuda' if autocast_enabled else 'cpu', dtype=self.compute_dtype, enabled=autocast_enabled):
-                outputs = self.model.generate(
-                    **inputs,
-                    max_new_tokens=max_new_tokens,
-                    temperature=temperature,
-                    top_p=top_p,
-                    top_k=top_k,
-                    repetition_penalty=repetition_penalty,
-                    pad_token_id=self.tokenizer.eos_token_id,
-                    eos_token_id=self.tokenizer.eos_token_id,
-                    do_sample=True,
-                )
-        
-        input_length = inputs["input_ids"].shape[1]
-        generated_tokens = outputs[0][input_length:]
-        
-        if self.verbose:
-            logger.debug(f"Generated tokens shape: {generated_tokens.shape}")
-            logger.debug(f"Generated token IDs: {generated_tokens[:10]}")
-        
-        if len(generated_tokens) == 1:
-            eos_token_id = self.tokenizer.eos_token_id
-            if generated_tokens[0].item() == eos_token_id:
-                logger.warning(f"⚠️ Model only generated EOS token ({eos_token_id}). This suggests the model hasn't learned to generate proper responses.")
-        
-        generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
-        
-        return generated_text.strip()
-    
 
 @hydra.main(version_base=None, config_path="conf", config_name="finetuning")
 def main(cfg: DictConfig):
@@ -456,9 +464,7 @@ def main(cfg: DictConfig):
         )
         
         if test_dataset:
-            logger.info("Evaluating model on test dataset...")
-            trainer.evaluate()
-
+            asyncio.run(trainer.evaluate())
 
 if __name__ == "__main__":
     main()
