@@ -124,7 +124,12 @@ class EvaluateMetrics:
         print(f"ROUGE-L Score:           {result.rouge_l:.4f}")
 
 def compute_metrics_fn(tokenizer):
-    """Create a compute_metrics function for use with Transformers Trainer"""
+    """Create a compute_metrics function for use with Transformers Trainer.
+    
+    Uses label mask (-100) to extract only completion tokens from both
+    predictions and labels, avoiding unreliable string splitting with
+    chat template special tokens.
+    """
     metrics_calculator = EvaluateMetrics()
     
     def compute_metrics(eval_pred):
@@ -139,28 +144,25 @@ def compute_metrics_fn(tokenizer):
             
             predictions = predictions.astype(np.int32)
             
-            decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
-            
-            labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-            labels = labels.astype(np.int32)
-            decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+            # Use label mask to extract only completion tokens
+            mask = labels != -100
             
             processed_preds = []
             processed_labels = []
             
-            for pred, label in zip(decoded_preds, decoded_labels):
-                pred_split = pred.split("### Địa chỉ hoàn thiện:")
-                label_split = label.split("### Địa chỉ hoàn thiện:")
+            for pred_row, label_row, mask_row in zip(predictions, labels, mask):
+                pred_completion = pred_row[mask_row]
+                label_completion = label_row[mask_row].astype(np.int32)
                 
-                if len(pred_split) > 1:
-                    processed_preds.append(pred_split[-1].strip())
-                else:
-                    processed_preds.append(pred.strip())
-                    
-                if len(label_split) > 1:
-                    processed_labels.append(label_split[-1].strip())
-                else:
-                    processed_labels.append(label.strip())
+                decoded_pred = tokenizer.decode(
+                    pred_completion, skip_special_tokens=True
+                ).strip()
+                decoded_label = tokenizer.decode(
+                    label_completion, skip_special_tokens=True
+                ).strip()
+                
+                processed_preds.append(decoded_pred)
+                processed_labels.append(decoded_label)
             
             result = metrics_calculator.metrics_evaluate(processed_preds, processed_labels)
             

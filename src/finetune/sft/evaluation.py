@@ -6,29 +6,27 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+sys.path.append(project_root)
 
 import json
 import hydra
 import torch
-import asyncio
 from loguru import logger
 from dotenv import load_dotenv
 from omegaconf import DictConfig
-from concurrent.futures import ThreadPoolExecutor
 from transformers import (
     AutoConfig,
     AutoTokenizer,
     AutoModelForCausalLM,
     BitsAndBytesConfig,
-    set_seed,
+    set_seed
 )
 from peft import PeftModel, PeftConfig
 
 from src.utils import load_dataset
-from src.metrics import EvaluateMetrics
-from src.prompts import PROMPT_TEMPLATE
+from src.finetune.sft.metrics import EvaluateMetrics
+from src.finetune.sft.prompts import PROMPT_TEMPLATE
 
 load_dotenv()
 
@@ -103,7 +101,7 @@ class LLMEvaluator:
             )
             
             model = PeftModel.from_pretrained(base_model, self.model_path)
-            logger.info("✅ PEFT adapters loaded successfully")
+            logger.info("PEFT adapters loaded successfully")
             
         else:
             logger.info("Loading full fine-tuned model (no PEFT adapters)")
@@ -145,36 +143,75 @@ class LLMEvaluator:
             enable_thinking=False
         )
 
-    async def evaluate(self):
+    def evaluate(self):
+        """Evaluate the model on test data using synchronous inference."""
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
         self.model.eval()
         
-        test_data_path = os.path.join(parent_dir, self.data_args.test_file)
+        test_data_path = os.path.join(project_root, self.data_args.test_file)
         test_data = load_dataset(test_data_path)
-
-        max_concurrent_queries = self.cfg.evaluation_arguments.max_concurrent_queries
+        eval_args = self.cfg.evaluation_arguments
+        max_length = getattr(self.model_args, 'model_max_length', 512)
         
-        logger.info(f"Processing {len(test_data)} samples with max {max_concurrent_queries} concurrent queries")
-        
-        semaphore = asyncio.Semaphore(max_concurrent_queries)
-        
-        async def predict(idx, sample):
-            async with semaphore:
-                return await self._predict(idx, sample, device)
-        
-        tasks = [predict(idx, sample) for idx, sample in enumerate(test_data)]
-        
-        query_results = await asyncio.gather(*tasks)
+        logger.info(f"Processing {len(test_data)} samples")
         
         predictions = []
         references = []
         inputs = []
         
-        for idx, pred, ref, inp in sorted(query_results, key=lambda x: x[0]):
-            predictions.append(pred)
-            references.append(ref)
-            inputs.append(inp)
+        for idx, sample in enumerate(test_data):
+            text = sample['text']
+            label = sample['label']
+            
+            prompt = self.format_prompt(text)
+            tokenized = self.tokenizer(
+                prompt,
+                return_tensors="pt",
+                truncation=True,
+                max_length=max_length,
+            )
+            tokenized = {k: v.to(device) for k, v in tokenized.items()}
+            
+            try:
+                with torch.no_grad():
+                    autocast_enabled = (
+                        torch.cuda.is_available() 
+                        and self.compute_dtype in (torch.float16, torch.bfloat16)
+                    )
+                    with torch.autocast(
+                        device_type='cuda' if autocast_enabled else 'cpu', 
+                        dtype=self.compute_dtype, 
+                        enabled=autocast_enabled
+                    ):
+                        output = self.model.generate(
+                            **tokenized,
+                            max_new_tokens=eval_args.max_new_tokens,
+                            temperature=eval_args.temperature,
+                            top_p=eval_args.top_p,
+                            top_k=eval_args.top_k,
+                            repetition_penalty=eval_args.repetition_penalty,
+                            pad_token_id=self.tokenizer.eos_token_id,
+                            eos_token_id=self.tokenizer.eos_token_id,
+                            do_sample=eval_args.do_sample,
+                        )
+                
+                input_length = tokenized["input_ids"].shape[1]
+                generated_tokens = output[0][input_length:]
+                generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
+
+                logger.debug(f"Sample {idx}: Input='{text}', Output='{generated_text}'")
+                
+                predictions.append(generated_text)
+                references.append(label)
+                inputs.append(text)
+                
+            except RuntimeError as e:
+                logger.error(f"Error processing sample {idx}: {e}")
+                raise e
+        
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         
         result = self.metrics.metrics_evaluate(predictions, references)
         self.metrics.print_evaluation_report(result, "Model Evaluation Results")
@@ -207,92 +244,34 @@ class LLMEvaluator:
         
         return result
 
-    async def _predict(self, idx, sample, device):
-        """Process a single query asynchronously"""
-        loop = asyncio.get_event_loop()
-        
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = loop.run_in_executor(
-                executor, 
-                self._run_single_inference, 
-                idx, sample, device
-            )
-            return await future
-    
-    def _run_single_inference(self, idx, sample, device):
-        text = sample['text']
-        label = sample['label']
-        
-        prompt = self.format_prompt(text)
-        eval_args = self.cfg.evaluation_arguments
-        
-        tokenized = self.tokenizer(
-            prompt,
-            return_tensors="pt",
-            truncation=True,
-            max_length=512,
-        )
-        tokenized = {k: v.to(device) for k, v in tokenized.items()}
-        
-        try:
-            with torch.no_grad():
-                autocast_enabled = torch.cuda.is_available() and self.compute_dtype in (torch.float16, torch.bfloat16)
-                with torch.autocast(device_type='cuda' if autocast_enabled else 'cpu', 
-                                  dtype=self.compute_dtype, enabled=autocast_enabled):
-                    output = self.model.generate(
-                        **tokenized,
-                        max_new_tokens=eval_args.max_new_tokens,
-                        temperature=eval_args.temperature,
-                        top_p=eval_args.top_p,
-                        top_k=eval_args.top_k,
-                        repetition_penalty=eval_args.repetition_penalty,
-                        pad_token_id=self.tokenizer.eos_token_id,
-                        eos_token_id=self.tokenizer.eos_token_id,
-                        do_sample=eval_args.do_sample,
-                    )
-            
-            input_length = tokenized["input_ids"].shape[1]
-            generated_tokens = output[0][input_length:]
-            generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
-            
-            if generated_text.startswith("### Địa chỉ hoàn thiện:"):
-                generated_text = generated_text.replace("### Địa chỉ hoàn thiện:", "").strip()
-            elif generated_text.startswith("Địa chỉ hoàn thiện:"):
-                generated_text = generated_text.replace("Địa chỉ hoàn thiện:", "").strip()
-
-            logger.debug(f"Sample {idx}: Input='{text}', Output='{generated_text}'")
-
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            
-            return idx, generated_text, label, text
-            
-        except RuntimeError as e:
-            logger.error(f"Error processing sample {idx}: {e}")
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            raise e
-
     def evaluate_single(self, text: str) -> str:
+        """Run inference on a single input text."""
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
         self.model.eval()
         
         eval_args = self.cfg.evaluation_arguments
+        max_length = getattr(self.model_args, 'model_max_length', 512)
         prompt = self.format_prompt(text)
         
         tokenized = self.tokenizer(
             prompt,
             return_tensors="pt",
             truncation=True,
-            max_length=512,
+            max_length=max_length,
         )
         tokenized = {k: v.to(device) for k, v in tokenized.items()}
         
         with torch.no_grad():
-            autocast_enabled = torch.cuda.is_available() and self.compute_dtype in (torch.float16, torch.bfloat16)
-            with torch.autocast(device_type='cuda' if autocast_enabled else 'cpu', 
-                              dtype=self.compute_dtype, enabled=autocast_enabled):
+            autocast_enabled = (
+                torch.cuda.is_available() 
+                and self.compute_dtype in (torch.float16, torch.bfloat16)
+            )
+            with torch.autocast(
+                device_type='cuda' if autocast_enabled else 'cpu', 
+                dtype=self.compute_dtype, 
+                enabled=autocast_enabled
+            ):
                 output = self.model.generate(
                     **tokenized,
                     max_new_tokens=eval_args.max_new_tokens,
@@ -309,18 +288,13 @@ class LLMEvaluator:
         generated_tokens = output[0][input_length:]
         generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
         
-        if generated_text.startswith("### Địa chỉ hoàn thiện:"):
-            generated_text = generated_text.replace("### Địa chỉ hoàn thiện:", "").strip()
-        elif generated_text.startswith("Địa chỉ hoàn thiện:"):
-            generated_text = generated_text.replace("Địa chỉ hoàn thiện:", "").strip()
-        
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         
         return generated_text
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="finetuning")
+@hydra.main(version_base=None, config_path="../../conf", config_name="finetuning")
 def main(cfg: DictConfig):
     set_seed(cfg.seed, deterministic=True)
 
@@ -330,7 +304,7 @@ def main(cfg: DictConfig):
     
     evaluator = LLMEvaluator(cfg=cfg)
 
-    asyncio.run(evaluator.evaluate())
+    evaluator.evaluate()
 
 if __name__ == "__main__":
     main()

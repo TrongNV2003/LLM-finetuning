@@ -6,19 +6,16 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+sys.path.append(project_root)
 
 import json
 import hydra
 import torch
-import mlflow
-import asyncio
 from loguru import logger
 from dotenv import load_dotenv
 from datasets import Dataset, DatasetDict
 from omegaconf import DictConfig, ListConfig
-from concurrent.futures import ThreadPoolExecutor
 from transformers import (
     AutoConfig,
     AutoTokenizer,
@@ -27,14 +24,14 @@ from transformers import (
     BitsAndBytesConfig,
     set_seed,
 )
-from trl import SFTTrainer, SFTConfig
+from trl import SFTTrainer, SFTConfig, DataCollatorForCompletionOnlyLM
 from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
 
 from src.callbacks.time_callback import TimeLoggerCallback
 from src.callbacks.memory_callback import MemoryLoggerCallback
 from src.utils import find_all_linear_names, load_dataset
-from src.metrics import EvaluateMetrics, compute_metrics_fn
-from src.prompts import PROMPT_TEMPLATE
+from src.finetune.sft.metrics import EvaluateMetrics, compute_metrics_fn
+from src.finetune.sft.prompts import PROMPT_TEMPLATE
 
 load_dotenv()
 
@@ -57,15 +54,15 @@ class Dataloader:
         self.raw_datasets = DatasetDict()
         
         if self.data_args.train_file:
-            train_data = load_dataset(os.path.join(parent_dir, self.data_args.train_file))
+            train_data = load_dataset(os.path.join(project_root, self.data_args.train_file))
             if train_data:
                 self.raw_datasets["train"] = Dataset.from_list(train_data)
         if self.data_args.validation_file:
-            val_data = load_dataset(os.path.join(parent_dir, self.data_args.validation_file))
+            val_data = load_dataset(os.path.join(project_root, self.data_args.validation_file))
             if val_data:
                 self.raw_datasets["validation"] = Dataset.from_list(val_data)
         if self.data_args.test_file:
-            test_data = load_dataset(os.path.join(parent_dir, self.data_args.test_file))
+            test_data = load_dataset(os.path.join(project_root, self.data_args.test_file))
             if test_data:
                 self.raw_datasets["test"] = Dataset.from_list(test_data)
 
@@ -160,21 +157,24 @@ class Dataloader:
 
 
 class LLMFinetuning:
-    def __init__(self, cfg: DictConfig) -> None:
+    def __init__(self, cfg: DictConfig, tokenizer=None) -> None:
         self.cfg = cfg
         self.data_args = cfg.dataset
         self.model_args = cfg.model
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_args.model_name_or_path,
-            use_fast=self.model_args.use_fast_tokenizer,
-            trust_remote_code=True,
-            cache_dir=self.model_args.cache_dir,
-            token=cfg.token,
-            revision=self.model_args.revision,
-            padding_side=self.model_args.padding_side,
-        )
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
+        if tokenizer is not None:
+            self.tokenizer = tokenizer
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_args.model_name_or_path,
+                use_fast=self.model_args.use_fast_tokenizer,
+                trust_remote_code=True,
+                cache_dir=self.model_args.cache_dir,
+                token=cfg.token,
+                revision=self.model_args.revision,
+                padding_side=self.model_args.padding_side,
+            )
+            if self.tokenizer.pad_token is None:
+                self.tokenizer.pad_token = self.tokenizer.eos_token
         
         logger.info(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
 
@@ -253,62 +253,94 @@ class LLMFinetuning:
         if eval_dataset is not None:
             compute_metrics = compute_metrics_fn(self.tokenizer)
 
+        response_template = "\n<|im_start|>assistant\n"
+        collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=self.tokenizer)
+
         trainer = SFTTrainer(
             model=self.model,
             args=training_args,
             processing_class=self.tokenizer,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
+            data_collator=collator,
             compute_metrics=compute_metrics,
             callbacks=[MemoryLoggerCallback(), TimeLoggerCallback()],
         )
         trainer.train()
         trainer.save_model()
-        self.tokenizer.save_pretrained(training_args.output_dir)
-        
-        if hasattr(self.model, 'save_pretrained'):
-            logger.info("Saving LoRA adapters...")
-            self.model.save_pretrained(training_args.output_dir)
-        
         logger.info(f"Model saved to {training_args.output_dir}")
                 
         return trainer
     
-    async def evaluate(self):
+    def evaluate(self):
+        """Evaluate the model on test data using synchronous inference."""
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
         self.model.eval()
         
-        test_data_path = os.path.join(parent_dir, self.data_args.test_file)
+        test_data_path = os.path.join(project_root, self.data_args.test_file)
         test_data = load_dataset(test_data_path)
-        
-        max_concurrent_queries = self.cfg.evaluation_arguments.max_concurrent_queries
+        eval_args = self.cfg.evaluation_arguments
+        max_length = getattr(self.model_args, 'model_max_length', 512)
         
         if hasattr(self.model, 'peft_config'):
-            logger.debug("✅ LoRA adapters are active")
+            logger.debug("LoRA adapters are active")
         else:
-            logger.warning("⚠️ LoRA adapters might not be active")
+            logger.warning("LoRA adapters might not be active")
 
-        logger.info(f"Processing {len(test_data)} samples with max {max_concurrent_queries} concurrent queries")
-        
-        semaphore = asyncio.Semaphore(max_concurrent_queries)
-        
-        async def predict(idx, sample):
-            async with semaphore:
-                return await self._predict(idx, sample, device)
-        
-        tasks = [predict(idx, sample) for idx, sample in enumerate(test_data)]
-        
-        query_results = await asyncio.gather(*tasks)
+        logger.info(f"Processing {len(test_data)} samples")
         
         predictions = []
         references = []
         inputs = []
         
-        for idx, pred, ref, inp in sorted(query_results, key=lambda x: x[0]):
-            predictions.append(pred)
-            references.append(ref)
-            inputs.append(inp)
+        for idx, sample in enumerate(test_data):
+            text = sample['text']
+            label = sample['label']
+            
+            prompt = self.format_prompt(text)
+            tokenized = self.tokenizer(
+                prompt,
+                return_tensors="pt",
+                truncation=True,
+                max_length=max_length,
+            )
+            tokenized = {k: v.to(device) for k, v in tokenized.items()}
+            
+            with torch.no_grad():
+                autocast_enabled = (
+                    torch.cuda.is_available() 
+                    and self.compute_dtype in (torch.float16, torch.bfloat16)
+                )
+                with torch.autocast(
+                    device_type='cuda' if autocast_enabled else 'cpu', 
+                    dtype=self.compute_dtype, 
+                    enabled=autocast_enabled
+                ):
+                    output = self.model.generate(
+                        **tokenized,
+                        max_new_tokens=eval_args.max_new_tokens,
+                        temperature=eval_args.temperature,
+                        top_p=eval_args.top_p,
+                        top_k=eval_args.top_k,
+                        repetition_penalty=eval_args.repetition_penalty,
+                        pad_token_id=self.tokenizer.eos_token_id,
+                        eos_token_id=self.tokenizer.eos_token_id,
+                        do_sample=eval_args.do_sample,
+                    )
+            
+            input_length = tokenized["input_ids"].shape[1]
+            generated_tokens = output[0][input_length:]
+            generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
+            
+            logger.debug(f"Sample {idx}: Input='{text}', Output='{generated_text}'")
+            
+            predictions.append(generated_text)
+            references.append(label)
+            inputs.append(text)
+        
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         
         result = self.metrics.metrics_evaluate(predictions, references)
         self.metrics.print_evaluation_report(result, "Final Model Evaluation")
@@ -340,68 +372,6 @@ class LLMFinetuning:
         
         return result
 
-    async def _predict(self, idx, sample, device):
-        loop = asyncio.get_event_loop()
-        
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = loop.run_in_executor(
-                executor, 
-                self._run_single_inference, 
-                idx, sample, device
-            )
-            return await future
-    
-    def _run_single_inference(self, idx, sample, device):
-        text = sample['text']
-        label = sample['label']
-        
-        prompt = self.format_prompt(text)
-        eval_args = self.cfg.evaluation_arguments
-        
-        tokenized = self.tokenizer(
-            prompt,
-            return_tensors="pt",
-            truncation=True,
-            max_length=512,
-        )
-        tokenized = {k: v.to(device) for k, v in tokenized.items()}
-        
-        try:
-            with torch.no_grad():
-                autocast_enabled = torch.cuda.is_available() and self.compute_dtype in (torch.float16, torch.bfloat16)
-                with torch.autocast(device_type='cuda' if autocast_enabled else 'cpu', 
-                                  dtype=self.compute_dtype, enabled=autocast_enabled):
-                    output = self.model.generate(
-                        **tokenized,
-                        max_new_tokens=eval_args.max_new_tokens,
-                        temperature=eval_args.temperature,
-                        top_p=eval_args.top_p,
-                        top_k=eval_args.top_k,
-                        repetition_penalty=eval_args.repetition_penalty,
-                        pad_token_id=self.tokenizer.eos_token_id,
-                        eos_token_id=self.tokenizer.eos_token_id,
-                        do_sample=eval_args.do_sample,
-                    )
-            
-            input_length = tokenized["input_ids"].shape[1]
-            generated_tokens = output[0][input_length:]
-            generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
-            
-            if generated_text.startswith("### Địa chỉ hoàn thiện:"):
-                generated_text = generated_text.replace("### Địa chỉ hoàn thiện:", "").strip()
-            elif generated_text.startswith("Địa chỉ hoàn thiện:"):
-                generated_text = generated_text.replace("Địa chỉ hoàn thiện:", "").strip()
-            
-            logger.debug(f"Sample {idx}: Input='{text}', Output='{generated_text}'")
-            
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                
-            return idx, generated_text, label, text
-            
-        except RuntimeError as e:
-            raise e
-
     def format_prompt(self, text: str) -> str:
         prompt_str = PROMPT_TEMPLATE.format(text=text)
         messages = [
@@ -416,55 +386,43 @@ class LLMFinetuning:
         )
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="finetuning")
+@hydra.main(version_base=None, config_path="../../conf", config_name="sft-conf")
 def main(cfg: DictConfig):
     set_seed(cfg.seed, deterministic=True)
 
-    experiment_name = cfg.logging.mlflow.experiment_name
-    try:
-        experiment = mlflow.get_experiment_by_name(experiment_name)
-        if experiment is None:
-            experiment_id = mlflow.create_experiment(experiment_name)
-        else:
-            experiment_id = experiment.experiment_id
-        mlflow.set_experiment(experiment_name)
-    except Exception as e:
-        logger.warning(f"MLflow experiment creation failed: {e}")
-        experiment_id = None
+    logger.info("Starting SFT Training")
+    dataloader = Dataloader(cfg)
+    trainer = LLMFinetuning(cfg=cfg, tokenizer=dataloader.tokenizer)
+    training_args = SFTConfig(**cfg.training_arguments)
+    training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
+    
+    training_args.dataloader_pin_memory = False
+    training_args.remove_unused_columns = True
+    training_args.dataloader_num_workers = 0
+    training_args.fp16 = not torch.cuda.is_bf16_supported()
+    training_args.bf16 = torch.cuda.is_bf16_supported()
+    
+    logger.info(f"Mixed precision: BF16={training_args.bf16}, FP16={training_args.fp16}, TF32={training_args.tf32}")
+    
+    datasets_processed = dataloader.get_processed_datasets(training_args)
+    train_dataset = datasets_processed.get("train")
+    val_dataset = datasets_processed.get("validation")
+    test_dataset = datasets_processed.get("test")
+    
+    logger.info(f"Train dataset size: {len(train_dataset)}")
+    if val_dataset:
+        logger.info(f"Validation dataset size: {len(val_dataset)}")
+    if test_dataset:
+        logger.info(f"Test dataset size: {len(test_dataset)}")
+    
+    trainer.train(
+        train_dataset=train_dataset,
+        eval_dataset=val_dataset,
+        training_args=training_args
+    )
         
-    with mlflow.start_run(run_name="finetuning"):
-        dataloader = Dataloader(cfg)
-        trainer = LLMFinetuning(cfg=cfg)
-        training_args = SFTConfig(**cfg.training_arguments)
-        training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
-        
-        training_args.dataloader_pin_memory = False
-        training_args.remove_unused_columns = True
-        training_args.dataloader_num_workers = 0
-        training_args.fp16 = not torch.cuda.is_bf16_supported()
-        training_args.bf16 = torch.cuda.is_bf16_supported()
-        
-        logger.info(f"Mixed precision: BF16={training_args.bf16}, FP16={training_args.fp16}, TF32={training_args.tf32}")
-        
-        datasets_processed = dataloader.get_processed_datasets(training_args)
-        train_dataset = datasets_processed.get("train")
-        val_dataset = datasets_processed.get("validation")
-        test_dataset = datasets_processed.get("test")
-        
-        logger.info(f"Train dataset size: {len(train_dataset)}")
-        if val_dataset:
-            logger.info(f"Validation dataset size: {len(val_dataset)}")
-        if test_dataset:
-            logger.info(f"Test dataset size: {len(test_dataset)}")
-        
-        trainer.train(
-            train_dataset=train_dataset,
-            eval_dataset=val_dataset,
-            training_args=training_args
-        )
-        
-        if test_dataset:
-            asyncio.run(trainer.evaluate())
+    if test_dataset:
+        trainer.evaluate()
 
 if __name__ == "__main__":
     main()
