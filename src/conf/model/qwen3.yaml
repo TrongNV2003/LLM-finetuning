@@ -1,4 +1,4 @@
-model_name_or_path: Qwen/Qwen3-4B
+model_name_or_path: Qwen/Qwen3.5-0.8B
 padding_side: right
 model_max_length: 256
 cache_dir:
@@ -18,4 +18,4 @@ lora:
   modules_to_save:
   use_dora: true
 
-qlora: false
+qlora: true
