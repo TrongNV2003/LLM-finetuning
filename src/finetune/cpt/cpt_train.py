@@ -1,6 +1,6 @@
 import os
 os.environ["HYDRA_FULL_ERROR"] = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
@@ -223,7 +223,18 @@ def main(cfg: DictConfig):
     logger.info("Starting CPT Training")
     dataloader = CPTDataloader(cfg)
     trainer = CPTFinetuning(cfg=cfg, tokenizer=dataloader.tokenizer)
-    training_args = SFTConfig(**cfg.training_arguments)
+    # Filter arguments to match SFTConfig/TrainingArguments signature
+    # This ensures compatibility across different TRL/Transformers versions
+    import inspect
+    sft_config_params = list(inspect.signature(SFTConfig.__init__).parameters.keys())
+    training_args_dict = {k: v for k, v in cfg.training_arguments.items() if k in sft_config_params}
+    
+    # Handle cases where max_seq_length was renamed or is missing from SFTConfig
+    if "max_seq_length" not in training_args_dict and "max_seq_length" in cfg.training_arguments:
+        if "max_length" in sft_config_params:
+            training_args_dict["max_length"] = cfg.training_arguments.max_seq_length
+            
+    training_args = SFTConfig(**training_args_dict)
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
 
     training_args.dataloader_pin_memory = False

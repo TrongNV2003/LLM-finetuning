@@ -1,6 +1,6 @@
 import os
 os.environ["HYDRA_FULL_ERROR"] = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 

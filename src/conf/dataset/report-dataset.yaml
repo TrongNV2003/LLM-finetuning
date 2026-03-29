@@ -2,9 +2,9 @@ dataset_from: "local"
 dataset_name: "report-dataset"
 text_col: "text"
 label_col: null
-source_dir: "data/report_dataset"
-train_file: "data/report_dataset/train.json"
-validation_file: "data/report_dataset/val.json"
+source_dir: "/home/trongdz/Desktop/gov_dataset/norm_dataset/full_dataset"
+train_file: "data/report_dataset1/train.json"
+validation_file: "data/report_dataset1/val.json"
 test_file: null
 test_split_percentage: null
 validation_split_percentage: 0.15

@@ -13,10 +13,10 @@ training_arguments:
   num_train_epochs: 5
   per_device_train_batch_size: 4
   per_device_eval_batch_size: 4
-  gradient_accumulation_steps: 1
+  gradient_accumulation_steps: 8
   eval_accumulation_steps: 1
   packing: true
-  max_seq_length: 256
+  max_length: 512
   dataset_text_field: "text"
   eval_strategy: "epoch"
   save_strategy: "epoch"
@@ -24,14 +24,13 @@ training_arguments:
   save_total_limit: 1
   learning_rate: 2e-4
   lr_scheduler_type: "linear"
-  warmup_ratio: 0.1
+  warmup_steps: 10
   weight_decay: 0.01
-  logging_steps: 100
+  logging_steps: 2
   tf32: true
   gradient_checkpointing: true
-  disable_tqdm: true
+  disable_tqdm: false
   report_to: "none"
-  logging_dir: "./logs"
   load_best_model_at_end: true
   greater_is_better: true
   torch_compile: false
