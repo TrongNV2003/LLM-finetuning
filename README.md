@@ -32,12 +32,12 @@ The repository is split into two main fine-tuning tasks:
 ### 1. Continued Pre-Training (CPT)
 Used for domain adaptation on long, unlabeled text data.
 
-**Prepare Data**:
+#### Preparing Data:
 Convert plain markdown files into chunked JSON format.
 ```bash
-python src/finetune/cpt/prepare_cpt_data.py --source_dir /path/to/md_files --output_dir /path/to/save_json
+python src/finetune/cpt/prepare_cpt_data.py --source_dir /path/to/md_files --output_dir /path/to/save_json --model_name model_name_or_path
 
-e.g. python src/prepare_cpt_data.py --source_dir data/report_dataset --model_name Qwen/Qwen3.5-0.8B
+e.g. python src/finetune/cpt/prepare_cpt_data.py --source_dir data/report_dataset --output_dir data/prepared_dataset --model_name Qwen/Qwen3.5-0.8B
 ```
 
 **Dataset Format (JSON)**:
@@ -49,15 +49,20 @@ e.g. python src/prepare_cpt_data.py --source_dir data/report_dataset --model_nam
 ]
 ```
 
-**Start CPT Training**:
+#### Start CPT Training:
 ```bash
 python src/finetune/cpt/cpt_train.py
+```
+
+#### Merge LoRA Weights to Base Model:
+```bash
+python merge_model.py
 ```
 
 ### 2. Supervised Fine-Tuning (SFT)
 Used for task-specific training (e.g., Address Normalization).
 
-**Dataset Format**:
+#### Preparing Dataset Format
 Your dataset should follow this structure:
 ```json
 [
@@ -68,7 +73,7 @@ Your dataset should follow this structure:
 ]
 ```
 
-**Start SFT Training**:
+#### Start SFT Training:
 ```bash
 python src/finetune/sft/train.py
 ```
