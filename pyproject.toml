@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-finetuning"
+version = "0.1.0"
+description = "SFT and CPT fine-tuning pipeline for LLMs, built on TRL + PEFT"
+requires-python = ">=3.12"
+dependencies = [
+    "torch>=2.13.0,<3",
+    "transformers>=5.14.1,<6",
+    "trl>=1.9.2,<2",
+    "peft>=0.20.0,<1",
+    "accelerate>=1.14.0,<2",
+    "datasets>=5.0.1,<6",
+    "bitsandbytes>=0.50.0,<1",
+    "python-dotenv>=1.2.2,<2",
+    "omegaconf>=2.3.1,<3",
+    "hydra-core>=1.3.4,<2",
+    "mlflow>=3.14.0,<4",
+    "numpy>=2.5.1,<3",
+    "nltk>=3.10.0,<4",
+    "pyvi>=0.1.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+# So a non-editable `pip install .` still finds the Hydra configs, which
+# hydra.main() resolves relative to the installed module.
+src = ["conf/**/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    # pyvi 0.1.1 (unmaintained) has unescaped regex literals in ViTokenizer.py.
+    # Silenced so it does not bury warnings that come from this codebase.
+    "ignore:invalid escape sequence:SyntaxWarning",
+]

@@ -1,0 +1,48 @@
+# Qwen3.5 (0.8B / 2B / 4B ...) — needs transformers >= 5.3.0 (model_type: qwen3_5).
+#
+#  1. The checkpoint is a VLM (`Qwen3_5ForConditionalGeneration`): weights live
+#     under `model.language_model.*` / `model.visual.*` / `mtp.*`.
+#     `model_class: causal_lm` maps to `Qwen3_5ForCausalLM`, which loads only the
+#     language model and ignores `model.visual.*` + `mtp.*` — what we want for a
+#     text-only task.
+#  2. It is hybrid: 18/24 layers are Gated DeltaNet (linear attention), only
+#     every 4th layer is full attention. Hence `supports_packing: false`.
+#     For speed install `flash-linear-attention` + `causal-conv1d`, otherwise the
+#     pure-torch fallback kernel is used (correct, but much slower).
+
+model_name_or_path: Qwen/Qwen3.5-0.8B
+model_class: causal_lm
+padding_side: right
+model_max_length: 2048
+cache_dir:
+revision:
+use_fast_tokenizer: true
+trust_remote_code: true
+use_cache: false # must stay false while training with gradient checkpointing
+attn_implementation: flash_attention_2  # For speed, addition install `flash-linear-attention` + `causal-conv1d`
+supports_packing: false # Deny packing, Qwen3.5 use Hybrid Attention
+
+chat_template_kwargs:
+  enable_thinking: false
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  bias: "none"
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - in_proj_qkv
+    - in_proj_z
+    - out_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  modules_to_save:
+  use_dora: false
+  use_rslora: false
+
+qlora: true

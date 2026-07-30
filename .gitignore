@@ -7,10 +7,16 @@ nice_output
 config.yaml
 _debugger.py
 finetuning-checkpoints/
+cpt-checkpoints/
+*-merged/
 mlruns/
 outputs/
 logs/
 *.log
+
+# Run artifacts written next to the code by the eval entry points
+evaluation_results.json
+cpt_evaluation_results.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

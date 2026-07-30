@@ -1,159 +1,117 @@
 import os
-os.environ["HYDRA_FULL_ERROR"] = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-
 import sys
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
-sys.path.append(project_root)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
 
-import json
+import src.env_setup  # noqa: E402, F401  (sets env vars before torch is imported)
+
 import hydra
-import torch
-from loguru import logger
-from dotenv import load_dotenv
+import logging
+from omegaconf import DictConfig
+from trl import SFTConfig, SFTTrainer
 from datasets import Dataset, DatasetDict
-from omegaconf import DictConfig, ListConfig
-from transformers import (
-    AutoConfig,
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    TrainingArguments,
-    BitsAndBytesConfig,
-    set_seed,
-)
-from trl import SFTTrainer, SFTConfig, DataCollatorForCompletionOnlyLM
-from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
+from transformers import set_seed
 
-from src.callbacks.time_callback import TimeLoggerCallback
-from src.callbacks.memory_callback import MemoryLoggerCallback
-from src.utils import find_all_linear_names, load_dataset
-from src.finetune.sft.metrics import EvaluateMetrics, compute_metrics_fn
+from src.finetune.sft.predictor import Predictor
 from src.finetune.sft.prompts import PROMPT_TEMPLATE
+from src.finetune.sft.metrics import compute_metrics_fn, preprocess_logits_for_metrics
+from src.utils.experiment import build_callbacks, setup_experiment_tracking
+from src.utils.training_args import build_training_args
+from src.utils.config import as_container
+from src.utils.data import load_dataset
+from src.models import (
+    free_gpu_memory,
+    load_model_for_training,
+    load_tokenizer,
+    merge_from_config,
+)
 
-load_dotenv()
+logger = logging.getLogger(__name__)
+
 
 class Dataloader:
-    def __init__(self, cfg: DictConfig):
+    """Turns `{"text", "label"}` rows into a TRL prompt-completion dataset."""
+
+    def __init__(self, cfg: DictConfig, tokenizer) -> None:
         self.data_args = cfg.dataset
         self.model_args = cfg.model
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_args.model_name_or_path,
-            use_fast=self.model_args.use_fast_tokenizer,
-            trust_remote_code=True,
-            cache_dir=self.model_args.cache_dir,
-            token=cfg.token,
-            revision=self.model_args.revision,
-            padding_side=self.model_args.padding_side,
-        )
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-            
-        self.raw_datasets = DatasetDict()
-        
-        if self.data_args.train_file:
-            train_data = load_dataset(os.path.join(project_root, self.data_args.train_file))
-            if train_data:
-                self.raw_datasets["train"] = Dataset.from_list(train_data)
-        if self.data_args.validation_file:
-            val_data = load_dataset(os.path.join(project_root, self.data_args.validation_file))
-            if val_data:
-                self.raw_datasets["validation"] = Dataset.from_list(val_data)
-        if self.data_args.test_file:
-            test_data = load_dataset(os.path.join(project_root, self.data_args.test_file))
-            if test_data:
-                self.raw_datasets["test"] = Dataset.from_list(test_data)
+        self.tokenizer = tokenizer
+        self.chat_template_kwargs = as_container(self.model_args.get("chat_template_kwargs")) or {}
 
-    def format_prompt(self, text: str, label: str = None) -> str:
-        """Format prompt for training with proper completion"""
-        if label is not None:
-            prompt_str = PROMPT_TEMPLATE.format(text=text)
-            messages = [
-                {"role": "user", "content": prompt_str},
-                {"role": "assistant", "content": label}
-            ]
-            
-            return self.tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=False,
-                enable_thinking=False
-            )
-        else:
-            prompt_str = PROMPT_TEMPLATE.format(text=text)
-            messages = [
-                {"role": "user", "content": prompt_str}
-            ]
-            
-        return self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False
-        )
+        self.raw_datasets = DatasetDict()
+        for split, file_key in (
+            ("train", "train_file"),
+            ("validation", "validation_file"),
+            ("test", "test_file"),
+        ):
+            file_path = self.data_args.get(file_key)
+            if not file_path:
+                continue
+            rows = load_dataset(file_path)
+            if rows:
+                self.raw_datasets[split] = Dataset.from_list(rows)
 
     def preprocess_fn(self, examples):
-        processed_texts = []
-        for text, label in zip(examples[self.data_args.text_col], examples[self.data_args.label_col]):
-            formatted_text = self.format_prompt(text, label)
-            processed_texts.append(formatted_text)
-        return {"text": processed_texts}
+        prompts, completions = [], []
+        for text, label in zip(
+            examples[self.data_args.text_col], examples[self.data_args.label_col]
+        ):
+            prompts.append([{"role": "user", "content": PROMPT_TEMPLATE.format(text=text)}])
+            completions.append([{"role": "assistant", "content": label}])
+
+        batch = {"prompt": prompts, "completion": completions}
+        if self.chat_template_kwargs:
+            batch["chat_template_kwargs"] = [self.chat_template_kwargs] * len(prompts)
+        return batch
 
     def get_processed_datasets(self, training_args) -> DatasetDict:
-        remain_columns = ["text"]
-        
-        if "train" in self.raw_datasets:
-            column_names = self.raw_datasets["train"].column_names
-        elif "validation" in self.raw_datasets:
-            column_names = self.raw_datasets["validation"].column_names
-        elif "test" in self.raw_datasets:
-            column_names = self.raw_datasets["test"].column_names
-        else:
+        if not self.raw_datasets:
             raise ValueError("No datasets available for processing")
-        
+
+        reference_split = next(iter(self.raw_datasets))
+        column_names = self.raw_datasets[reference_split].column_names
+
+        # `datasets` errors out when num_proc exceeds the number of rows in a split.
+        smallest_split = min(len(split) for split in self.raw_datasets.values())
+        num_proc = max(1, min(int(self.data_args.preprocessing_num_workers or 1), smallest_split))
+
         with training_args.main_process_first(desc="dataset mapping"):
-            datasets_tokenized = self.raw_datasets.map(
+            datasets = self.raw_datasets.map(
                 self.preprocess_fn,
                 batched=True,
-                remove_columns=list(set(column_names) - set(remain_columns)),
+                remove_columns=column_names,
                 load_from_cache_file=not self.data_args.overwrite_cache,
-                num_proc=self.data_args.preprocessing_num_workers,
-                desc="Format dataset with prompts",
+                num_proc=num_proc,
+                desc="Building prompt-completion dataset",
             )
 
-        if training_args.do_train:
-            if "train" not in datasets_tokenized:
-                raise ValueError("--do_train requires a train dataset")
-            train_dataset = datasets_tokenized["train"]
-            if self.data_args.shuffle:
-                train_dataset = train_dataset.shuffle(seed=training_args.seed)
-            if self.data_args.max_train_samples is not None:
-                max_train_samples = min(len(train_dataset), self.data_args.max_train_samples)
-                train_dataset = train_dataset.select(range(max_train_samples))
-            datasets_tokenized["train"] = train_dataset
+        if "train" not in datasets:
+            raise ValueError("Training requires a train dataset (dataset.train_file)")
+        train_dataset = datasets["train"]
+        if self.data_args.shuffle:
+            train_dataset = train_dataset.shuffle(seed=training_args.seed)
+        if self.data_args.max_train_samples is not None:
+            limit = min(len(train_dataset), self.data_args.max_train_samples)
+            train_dataset = train_dataset.select(range(limit))
+        datasets["train"] = train_dataset
 
         if training_args.do_eval:
-            if "validation" not in datasets_tokenized:
-                if "test" not in datasets_tokenized:
-                    raise ValueError("--do_eval requires a validation dataset")
-                else:
-                    logger.warning("--do_eval requires a validation dataset, using test dataset instead")
-                    eval_dataset = datasets_tokenized["test"]
-            else:
-                eval_dataset = datasets_tokenized["validation"]
-
+            if "validation" not in datasets:
+                raise ValueError(
+                    "do_eval=true requires dataset.validation_file. Set do_eval=false, or "
+                    "carve a validation split out of train — the test split must not be used, "
+                    "or early stopping would select on the split you report on."
+                )
+            eval_dataset = datasets["validation"]
             if self.data_args.max_eval_samples is not None:
-                max_eval_samples = min(len(eval_dataset), self.data_args.max_eval_samples)
-                eval_dataset = eval_dataset.select(range(max_eval_samples))
-            datasets_tokenized["validation"] = eval_dataset
+                limit = min(len(eval_dataset), self.data_args.max_eval_samples)
+                eval_dataset = eval_dataset.select(range(limit))
+            datasets["validation"] = eval_dataset
 
-        if "test" in datasets_tokenized and self.data_args.max_test_samples is not None:
-            max_test_samples = min(len(datasets_tokenized["test"]), self.data_args.max_test_samples)
-            datasets_tokenized["test"] = datasets_tokenized["test"].select(range(max_test_samples))
+        if "test" in datasets and self.data_args.max_test_samples is not None:
+            limit = min(len(datasets["test"]), self.data_args.max_test_samples)
+            datasets["test"] = datasets["test"].select(range(limit))
 
-        return datasets_tokenized
+        return datasets
 
 
 class LLMFinetuning:
@@ -161,100 +119,11 @@ class LLMFinetuning:
         self.cfg = cfg
         self.data_args = cfg.dataset
         self.model_args = cfg.model
-        if tokenizer is not None:
-            self.tokenizer = tokenizer
-        else:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_args.model_name_or_path,
-                use_fast=self.model_args.use_fast_tokenizer,
-                trust_remote_code=True,
-                cache_dir=self.model_args.cache_dir,
-                token=cfg.token,
-                revision=self.model_args.revision,
-                padding_side=self.model_args.padding_side,
-            )
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
-        
-        logger.info(f"Lora: {self.model_args.lora}, qLora: {self.model_args.qlora}")
+        self.tokenizer = tokenizer if tokenizer is not None else load_tokenizer(cfg)
+        self.model = load_model_for_training(cfg, self.tokenizer)
 
-        bnb_config = None
-        self.compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-        if hasattr(self.model_args, 'qlora') and self.model_args.qlora:
-            logger.info("Using QLoRA with 4-bit quantization")
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True,
-                bnb_4bit_compute_dtype=self.compute_dtype
-            )
-        else:
-            logger.info("Using full precision training (no quantization)")
-        
-        config = AutoConfig.from_pretrained(
-            self.model_args.model_name_or_path,
-            pad_token_id=self.tokenizer.pad_token_id,
-            trust_remote_code=self.model_args.trust_remote_code,
-            cache_dir=self.model_args.cache_dir,
-            use_cache=self.model_args.use_cache,
-            revision=self.model_args.revision,
-            token=cfg.token,
-        )
-        config.deterministic_flash_attention = True
-        
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_args.model_name_or_path,
-            trust_remote_code=self.model_args.trust_remote_code,
-            config=config,
-            token=cfg.token,
-            cache_dir=self.model_args.cache_dir,
-            revision=self.model_args.revision,
-            quantization_config=bnb_config,
-            attn_implementation=self.model_args.attn_implementation,
-            torch_dtype=self.compute_dtype,
-            low_cpu_mem_usage=self.model_args.low_cpu_mem_usage,
-        )
-
-        if self.model_args.lora is not None and self.model_args.lora != 'None':
-            modules = find_all_linear_names(self.model)
-            if self.model_args.qlora:
-                self.model = prepare_model_for_kbit_training(self.model)
-            modules_to_save = self.model_args.lora.modules_to_save
-            if isinstance(modules_to_save, ListConfig):
-                modules_to_save = list(modules_to_save)
-        
-            lora_config = LoraConfig(
-                r=self.model_args.lora.r,
-                lora_alpha=self.model_args.lora.lora_alpha,
-                target_modules=modules,
-                lora_dropout=self.model_args.lora.lora_dropout,
-                bias=self.model_args.lora.bias,
-                task_type=TaskType.CAUSAL_LM,
-                use_dora=self.model_args.lora.use_dora,
-            )
-            self.model = get_peft_model(self.model, lora_config)
-        
-            train_p, tot_p = self.model.get_nb_trainable_parameters()
-            logger.info(f"Model loaded: {self.model_args.model_name_or_path}")
-            logger.info(f'Trainable parameters:      {train_p/1e6:.2f}M')
-            logger.info(f'Total parameters:          {tot_p/1e6:.2f}M')
-            logger.info(f'% of trainable parameters: {100*train_p/tot_p:.2f}%')
-            
-        self.metrics = EvaluateMetrics()
-    
-    def train(
-        self,
-        train_dataset: Dataset,
-        eval_dataset: Dataset = None,
-        training_args: TrainingArguments = None,
-        **kwargs
-    ):
-        compute_metrics = None
-        if eval_dataset is not None:
-            compute_metrics = compute_metrics_fn(self.tokenizer)
-
-        response_template = "\n<|im_start|>assistant\n"
-        collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=self.tokenizer)
+    def train(self, train_dataset, training_args, eval_dataset=None):
+        compute_metrics = compute_metrics_fn(self.tokenizer) if eval_dataset is not None else None
 
         trainer = SFTTrainer(
             model=self.model,
@@ -262,167 +131,94 @@ class LLMFinetuning:
             processing_class=self.tokenizer,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
-            data_collator=collator,
             compute_metrics=compute_metrics,
-            callbacks=[MemoryLoggerCallback(), TimeLoggerCallback()],
+            preprocess_logits_for_metrics=preprocess_logits_for_metrics if compute_metrics else None,
+            callbacks=build_callbacks(self.cfg, training_args),
         )
         trainer.train()
         trainer.save_model()
         logger.info(f"Model saved to {training_args.output_dir}")
-                
         return trainer
-    
-    def evaluate(self):
-        """Evaluate the model on test data using synchronous inference."""
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model.to(device)
-        self.model.eval()
-        
-        test_data_path = os.path.join(project_root, self.data_args.test_file)
-        test_data = load_dataset(test_data_path)
-        eval_args = self.cfg.evaluation_arguments
-        max_length = getattr(self.model_args, 'model_max_length', 512)
-        
-        if hasattr(self.model, 'peft_config'):
-            logger.debug("LoRA adapters are active")
-        else:
-            logger.warning("LoRA adapters might not be active")
 
-        logger.info(f"Processing {len(test_data)} samples")
-        
-        predictions = []
-        references = []
-        inputs = []
-        
-        for idx, sample in enumerate(test_data):
-            text = sample['text']
-            label = sample['label']
-            
-            prompt = self.format_prompt(text)
-            tokenized = self.tokenizer(
-                prompt,
-                return_tensors="pt",
-                truncation=True,
-                max_length=max_length,
-            )
-            tokenized = {k: v.to(device) for k, v in tokenized.items()}
-            
-            with torch.no_grad():
-                autocast_enabled = (
-                    torch.cuda.is_available() 
-                    and self.compute_dtype in (torch.float16, torch.bfloat16)
-                )
-                with torch.autocast(
-                    device_type='cuda' if autocast_enabled else 'cpu', 
-                    dtype=self.compute_dtype, 
-                    enabled=autocast_enabled
-                ):
-                    output = self.model.generate(
-                        **tokenized,
-                        max_new_tokens=eval_args.max_new_tokens,
-                        temperature=eval_args.temperature,
-                        top_p=eval_args.top_p,
-                        top_k=eval_args.top_k,
-                        repetition_penalty=eval_args.repetition_penalty,
-                        pad_token_id=self.tokenizer.eos_token_id,
-                        eos_token_id=self.tokenizer.eos_token_id,
-                        do_sample=eval_args.do_sample,
-                    )
-            
-            input_length = tokenized["input_ids"].shape[1]
-            generated_tokens = output[0][input_length:]
-            generated_text = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
-            
-            logger.debug(f"Sample {idx}: Input='{text}', Output='{generated_text}'")
-            
-            predictions.append(generated_text)
-            references.append(label)
-            inputs.append(text)
-        
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        
-        result = self.metrics.metrics_evaluate(predictions, references)
-        self.metrics.print_evaluation_report(result, "Final Model Evaluation")
+    def release(self):
+        """Drop the training model so the merge/eval load does not fight it for VRAM."""
+        self.model = None
+        free_gpu_memory()
 
-        detailed_results = []
-        for i, (inp, pred, ref) in enumerate(zip(inputs, predictions, references)):
-            detailed_results.append({
-                'id': i,
-                'input': inp,
-                'prediction': pred,
-                'reference': ref,
-                'exact_match': pred.strip().lower() == ref.strip().lower()
-            })
-        
-        results_file = "evaluation_results.json"
-        with open(results_file, 'w', encoding='utf-8') as f:
-            json.dump({
-                'metrics': {
-                    'exact_match': result.exact_match,
-                    'bleu_score': result.bleu_score,
-                    'rouge_l': result.rouge_l,
-                    'lexical_similarity': result.lexical_similarity,
-                    'num_samples': result.num_samples
-                },
-                'detailed_results': detailed_results
-            }, f, ensure_ascii=False, indent=2)
-        
-        logger.info(f"Evaluation results saved to {results_file}")
-        
-        return result
+    def evaluate(self, results_file: str = "evaluation_results.json"):
+        """Generation-based evaluation on the test split."""
+        test_data = load_dataset(self.data_args.test_file)
+        predictor = Predictor(self.model, self.tokenizer, self.cfg)
 
-    def format_prompt(self, text: str) -> str:
-        prompt_str = PROMPT_TEMPLATE.format(text=text)
-        messages = [
-            {"role": "user", "content": prompt_str}
-        ]
-            
-        return self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False
+        result, detailed = predictor.evaluate_samples(
+            test_data, self.data_args.text_col, self.data_args.label_col
         )
+        predictor.metrics.print_evaluation_report(result, "Final Model Evaluation")
+        predictor.save_results(
+            results_file, result, detailed, self.cfg.training_arguments.output_dir
+        )
+        return result
 
 
 @hydra.main(version_base=None, config_path="../../conf", config_name="sft-conf")
 def main(cfg: DictConfig):
-    set_seed(cfg.seed, deterministic=True)
+    # deterministic=True also flips torch.use_deterministic_algorithms, which
+    # errors on some fused/flash kernels — opt in explicitly.
+    set_seed(cfg.seed, deterministic=bool(cfg.get("deterministic", False)))
 
-    logger.info("Starting SFT Training")
-    dataloader = Dataloader(cfg)
-    trainer = LLMFinetuning(cfg=cfg, tokenizer=dataloader.tokenizer)
-    training_args = SFTConfig(**cfg.training_arguments)
-    training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
-    
-    training_args.dataloader_pin_memory = False
-    training_args.remove_unused_columns = True
-    training_args.dataloader_num_workers = 0
-    training_args.fp16 = not torch.cuda.is_bf16_supported()
-    training_args.bf16 = torch.cuda.is_bf16_supported()
-    
-    logger.info(f"Mixed precision: BF16={training_args.bf16}, FP16={training_args.fp16}, TF32={training_args.tf32}")
-    
-    datasets_processed = dataloader.get_processed_datasets(training_args)
-    train_dataset = datasets_processed.get("train")
-    val_dataset = datasets_processed.get("validation")
-    test_dataset = datasets_processed.get("test")
-    
+    logger.info("Starting SFT training")
+    training_args = build_training_args(cfg, SFTConfig)
+    setup_experiment_tracking(cfg, training_args)
+
+    if not training_args.do_train:
+        raise ValueError(
+            "do_train=false has no meaning here — use src/finetune/sft/evaluation.py "
+            "to score an existing checkpoint without training"
+        )
+
+    tokenizer = load_tokenizer(cfg)
+    dataloader = Dataloader(cfg, tokenizer)
+    datasets = dataloader.get_processed_datasets(training_args)
+
+    train_dataset = datasets["train"]
+    val_dataset = datasets.get("validation")
+    test_dataset = datasets.get("test")
+
     logger.info(f"Train dataset size: {len(train_dataset)}")
-    if val_dataset:
+    if val_dataset is not None:
         logger.info(f"Validation dataset size: {len(val_dataset)}")
-    if test_dataset:
+    if test_dataset is not None:
         logger.info(f"Test dataset size: {len(test_dataset)}")
-    
-    trainer.train(
+
+    finetuning = LLMFinetuning(cfg=cfg, tokenizer=tokenizer)
+    finetuning.train(
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
-        training_args=training_args
+        training_args=training_args,
     )
-        
-    if test_dataset:
-        trainer.evaluate()
+
+    merge_cfg = cfg.get("merge") or {}
+    merge_enabled = bool(merge_cfg.get("enabled", False)) and cfg.model.get("lora") is not None
+    has_test = bool(cfg.dataset.test_file)
+    eval_merged = has_test and merge_enabled and bool(merge_cfg.get("evaluate_merged", True))
+
+    if has_test and not eval_merged:
+        finetuning.evaluate()
+
+    merged_dir = None
+    if merge_enabled:
+        finetuning.release()
+        merged_dir = merge_from_config(cfg, training_args.output_dir)
+
+    if eval_merged:
+        if merged_dir:
+            from src.finetune.sft.evaluation import LLMEvaluator
+
+            logger.info("Evaluating the merged model")
+            LLMEvaluator(cfg=cfg, model_path=merged_dir).evaluate()
+        else:
+            logger.warning("Nothing was merged, skipping merged-model evaluation")
+
 
 if __name__ == "__main__":
     main()

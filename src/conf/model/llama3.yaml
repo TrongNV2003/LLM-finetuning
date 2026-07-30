@@ -1,18 +1,16 @@
-# Qwen3 dense (0.6B / 1.7B / 4B / 8B ...) — plain text transformer.
-model_name_or_path: Qwen/Qwen3-0.6B
+model_name_or_path: meta-llama/Llama-3.2-1B-Instruct
 model_class: causal_lm
 padding_side: right
 model_max_length: 2048
 cache_dir:
 revision:
 use_fast_tokenizer: true
-trust_remote_code: true
+trust_remote_code: false
 use_cache: false
 attn_implementation: flash_attention_2
 supports_packing: true
 
-chat_template_kwargs:
-  enable_thinking: false
+chat_template_kwargs: {} # no thinking switch in this template
 
 lora:
   r: 16

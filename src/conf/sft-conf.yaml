@@ -1,54 +1,63 @@
 defaults:
   - _self_
   - dataset: address-dataset
-  - model: qwen3
+  - model: qwen3_5
 
 training_arguments:
   optim: "adamw_torch_fused"
-  bf16: true
   do_train: true
   do_eval: true
-  do_predict: true
   output_dir: "./finetuning-checkpoints"
   num_train_epochs: 5
   per_device_train_batch_size: 4
   per_device_eval_batch_size: 4
   gradient_accumulation_steps: 8
-  eval_accumulation_steps: 1
-  packing: true
+  eval_accumulation_steps: 4
+  packing: false
   max_length: 512
-  dataset_text_field: "text"
   eval_strategy: "epoch"
   save_strategy: "epoch"
   save_only_model: true
-  save_total_limit: 1
+  save_total_limit: 2
   learning_rate: 2e-4
   lr_scheduler_type: "linear"
-  warmup_steps: 10
+  warmup_ratio: 0.05
   weight_decay: 0.01
   logging_steps: 2
+  logging_strategy: steps
   tf32: true
+  dataloader_num_workers: 0
+  dataloader_pin_memory: false
   gradient_checkpointing: true
   disable_tqdm: false
-  report_to: "none"
+  report_to: "none" # set to "mlflow" to use the logging block below
   load_best_model_at_end: true
-  greater_is_better: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
   torch_compile: false
-  overwrite_output_dir: true
-  metric_for_best_model: "eval_rouge_l"
-  logging_strategy: steps
   seed: 42
 
 evaluation_arguments:
-  max_concurrent_queries: 4
-  max_new_tokens: 256
+  batch_size: 8
+  max_new_tokens: 128
+  # Address normalisation has one correct answer -> greedy, reproducible.
+  # temperature/top_p/top_k/repetition_penalty are only applied if do_sample.
+  do_sample: false
   temperature: 0.3
   top_p: 0.9
   top_k: 50
-  repetition_penalty: 1.1
-  do_sample: true
+  repetition_penalty: 1.0
 
+# Merge the trained adapter into the base model right after training
+merge:
+  enabled: true # if false -> No merge weight to base model
+  output_dir: # null -> "<training_arguments.output_dir>-merged"
+  dtype: bfloat16
+  evaluate_merged: true
+
+early_stopping_patience: 3 # 0 disables
 seed: 42
+deterministic: false
 token: null
 logging:
   mlflow:
