@@ -19,13 +19,13 @@ pytest.importorskip("torch")
 pytest.importorskip("peft")
 pytest.importorskip("trl")
 
-import torch  # noqa: E402
-from hydra import compose, initialize_config_dir  # noqa: E402
-from trl import SFTConfig  # noqa: E402
+import torch
+from hydra import compose, initialize_config_dir
+from trl import SFTConfig
 
-from src.env_setup import PROJECT_ROOT  # noqa: E402
-from src.utils.config import resolve_max_length  # noqa: E402
-from src.utils.training_args import build_training_args  # noqa: E402
+from src.env_setup import PROJECT_ROOT
+from src.utils.config import resolve_max_length
+from src.utils.training_args import build_training_args
 
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "src", "conf")
 TASK_CONFIGS = ["sft-conf", "cpt-conf"]

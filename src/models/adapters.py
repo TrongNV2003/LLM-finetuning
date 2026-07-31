@@ -2,11 +2,11 @@
 
 import torch
 import logging
-from typing import List
+from typing import List, cast
 from torch.nn import Module
 from omegaconf import DictConfig
 from transformers import BitsAndBytesConfig
-from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
+from peft import LoraConfig, PeftModel, TaskType, get_peft_model, prepare_model_for_kbit_training
 
 from src.utils.config import as_container
 
@@ -76,7 +76,9 @@ def apply_peft(model, model_args: DictConfig, use_gradient_checkpointing: bool =
         use_rslora=lora_args.get("use_rslora", False),
         task_type=TaskType.CAUSAL_LM,
     )
-    model = get_peft_model(model, lora_config)
+    # `get_peft_model` is annotated `PeftModel | PeftMixedModel`; only `mixed=True`
+    # yields the latter, and TRL's trainers only accept a plain `PeftModel`.
+    model = cast(PeftModel, get_peft_model(model, lora_config))
 
     trainable, total = model.get_nb_trainable_parameters()
     logger.info(f"Trainable parameters:      {trainable / 1e6:.2f}M")

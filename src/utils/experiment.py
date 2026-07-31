@@ -11,12 +11,12 @@ __all__ = ["build_callbacks", "setup_experiment_tracking"]
 
 
 def build_callbacks(cfg: DictConfig, training_args) -> List:
-    from transformers import EarlyStoppingCallback
+    from transformers import EarlyStoppingCallback, TrainerCallback
 
     from src.callbacks.memory_callback import MemoryLoggerCallback
     from src.callbacks.time_callback import TimeLoggerCallback
 
-    callbacks = [MemoryLoggerCallback(), TimeLoggerCallback()]
+    callbacks: List[TrainerCallback] = [MemoryLoggerCallback(), TimeLoggerCallback()]
 
     patience = int(cfg.get("early_stopping_patience", 0) or 0)
     if patience > 0:

@@ -10,7 +10,7 @@ import logging
 
 import hydra
 import torch
-from typing import List, Optional
+from typing import List, Optional, cast
 from omegaconf import DictConfig
 from transformers import set_seed
 
@@ -125,7 +125,9 @@ class CPTEvaluator:
             )
 
         generated = output[0][tokenized["input_ids"].shape[1] :]
-        text = self.tokenizer.decode(generated, skip_special_tokens=True).strip()
+        # `decode` is annotated `str | list[str]` for the batched case; a single
+        # sequence goes in here, so a single string comes out.
+        text = cast(str, self.tokenizer.decode(generated, skip_special_tokens=True)).strip()
 
         if torch.cuda.is_available():
             torch.cuda.empty_cache()

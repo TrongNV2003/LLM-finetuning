@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 pytest.importorskip("pyvi")
 pytest.importorskip("nltk")
 
-from src.finetune.sft.metrics import EvaluateMetrics  # noqa: E402
+from src.finetune.sft.metrics import EvaluateMetrics
 
 
 @pytest.fixture

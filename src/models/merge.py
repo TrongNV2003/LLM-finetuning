@@ -11,10 +11,10 @@ import gc
 import json
 import torch
 import logging
-from typing import Optional
+from typing import Optional, cast
 from omegaconf import DictConfig
 from peft import PeftConfig, PeftModel
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
 from src.env_setup import resolve_path
 from src.models.registry import resolve_model_class
@@ -71,25 +71,30 @@ def merge_adapter(
     )
 
     logger.info(f"Applying adapter from {adapter_dir}")
-    model = PeftModel.from_pretrained(model, adapter_dir, token=token)
+    peft_model = PeftModel.from_pretrained(model, adapter_dir, token=token)
 
     logger.info("Merging adapter weights into the base model")
-    model = model.merge_and_unload()
+    # `merge_and_unload` lives on the LoRA tuner and is reached through
+    # PeftModel.__getattr__, which a type checker cannot follow.
+    merged_model = peft_model.merge_and_unload()  # pyrefly: ignore[not-callable]
 
     os.makedirs(output_dir, exist_ok=True)
-    model.save_pretrained(output_dir, safe_serialization=True)
+    merged_model.save_pretrained(output_dir, safe_serialization=True)
 
     if os.path.exists(os.path.join(adapter_dir, "tokenizer_config.json")):
         tokenizer_source = adapter_dir
     else:
         logger.info(f"No tokenizer in {adapter_dir}, taking it from the base model")
         tokenizer_source = base_model
-    tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_source, trust_remote_code=trust_remote_code, token=token, cache_dir=cache_dir
+    tokenizer = cast(
+        PreTrainedTokenizerBase,
+        AutoTokenizer.from_pretrained(
+            tokenizer_source, trust_remote_code=trust_remote_code, token=token, cache_dir=cache_dir
+        ),
     )
     tokenizer.save_pretrained(output_dir)
 
-    del model
+    del model, peft_model, merged_model
     gc.collect()
 
     logger.info(f"Merged model saved to {output_dir}")

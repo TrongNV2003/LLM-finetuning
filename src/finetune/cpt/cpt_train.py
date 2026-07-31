@@ -7,6 +7,7 @@ import src.env_setup  # noqa: E402, F401  (sets env vars before torch is importe
 import math
 import hydra
 import logging
+from typing import cast
 from omegaconf import DictConfig
 from trl import SFTConfig, SFTTrainer
 from datasets import Dataset, DatasetDict
@@ -54,10 +55,10 @@ class CPTDataloader:
             raise ValueError("Training requires a train dataset (dataset.train_file)")
         train_dataset = datasets["train"]
         if self.data_args.shuffle:
-            train_dataset = train_dataset.shuffle(seed=training_args.seed)
+            train_dataset = cast(Dataset, train_dataset.shuffle(seed=training_args.seed))
         if self.data_args.max_train_samples is not None:
             limit = min(len(train_dataset), self.data_args.max_train_samples)
-            train_dataset = train_dataset.select(range(limit))
+            train_dataset = cast(Dataset, train_dataset.select(range(limit)))
         datasets["train"] = train_dataset
 
         if training_args.do_eval:
@@ -66,7 +67,7 @@ class CPTDataloader:
             eval_dataset = datasets["validation"]
             if self.data_args.max_eval_samples is not None:
                 limit = min(len(eval_dataset), self.data_args.max_eval_samples)
-                eval_dataset = eval_dataset.select(range(limit))
+                eval_dataset = cast(Dataset, eval_dataset.select(range(limit)))
             datasets["validation"] = eval_dataset
 
         return datasets

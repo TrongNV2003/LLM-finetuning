@@ -11,8 +11,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 pytest.importorskip("transformers")
 pytest.importorskip("omegaconf")  # prepare_cpt_data reads the config via src.utils.config
 
-from src.env_setup import PROJECT_ROOT  # noqa: E402
-from src.finetune.cpt.prepare_cpt_data import (  # noqa: E402
+from src.env_setup import PROJECT_ROOT
+from src.finetune.cpt.prepare_cpt_data import (
     deduplicate,
     drop_seen_in_train,
     prepare_cpt_data,

@@ -2,10 +2,10 @@
 
 import os
 import logging
-from typing import Optional
+from typing import Optional, cast
 from omegaconf import DictConfig
 from peft import PeftConfig, PeftModel
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, PreTrainedTokenizerBase
 
 from src.models.adapters import apply_peft, build_quantization_config
 from src.models.registry import resolve_compute_dtype, resolve_model_class
@@ -20,16 +20,20 @@ __all__ = [
 ]
 
 
-def load_tokenizer(cfg: DictConfig):
+def load_tokenizer(cfg: DictConfig) -> PreTrainedTokenizerBase:
     model_args = cfg.model
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_args.model_name_or_path,
-        use_fast=model_args.use_fast_tokenizer,
-        trust_remote_code=model_args.trust_remote_code,
-        cache_dir=model_args.cache_dir,
-        token=cfg.token,
-        revision=model_args.revision,
-        padding_side=model_args.padding_side,
+    # `AutoTokenizer.from_pretrained` is annotated as the backend union
+    tokenizer = cast(
+        PreTrainedTokenizerBase,
+        AutoTokenizer.from_pretrained(
+            model_args.model_name_or_path,
+            use_fast=model_args.use_fast_tokenizer,
+            trust_remote_code=model_args.trust_remote_code,
+            cache_dir=model_args.cache_dir,
+            token=cfg.token,
+            revision=model_args.revision,
+            padding_side=model_args.padding_side,
+        ),
     )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token

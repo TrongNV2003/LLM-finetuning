@@ -41,3 +41,11 @@ filterwarnings = [
     # Silenced so it does not bury warnings that come from this codebase.
     "ignore:invalid escape sequence:SyntaxWarning",
 ]
+
+[tool.pyrefly]
+# `src` is a real package, so imports read `src.models...` from the repo root.
+search-path = ["."]
+
+# The project venv (uv sync), not a global conda env: requires-python is >=3.12
+# and only this env has the pinned peft/trl/hydra installed.
+python-interpreter-path = ".venv/bin/python"

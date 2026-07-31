@@ -12,8 +12,8 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.env_setup import PROJECT_ROOT  # noqa: E402
-from src.finetune.cpt.chunking import (  # noqa: E402
+from src.env_setup import PROJECT_ROOT
+from src.finetune.cpt.chunking import (
     chunk_document,
     detect_heading,
     parse_blocks,

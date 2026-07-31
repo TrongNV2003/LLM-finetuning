@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.env_setup import PROJECT_ROOT, resolve_path  # noqa: E402
+from src.env_setup import PROJECT_ROOT, resolve_path
 
 
 def test_project_root_is_the_repo_root():

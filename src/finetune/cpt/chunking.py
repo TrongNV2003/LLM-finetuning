@@ -91,7 +91,7 @@ def _normalise_levels(blocks: List[Block]) -> None:
     levels.update({pattern: offset + i for i, pattern in enumerate(rule_based, start=1)})
 
     for block in blocks:
-        if block.kind == "heading":
+        if block.kind == "heading" and block.pattern:
             block.level = levels.get(block.pattern)
 
 
