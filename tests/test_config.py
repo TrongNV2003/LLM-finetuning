@@ -82,7 +82,7 @@ def test_output_dir_is_anchored_to_project_root():
 
 
 def test_packing_forced_off_for_hybrid_models():
-    cfg = load_cfg("cpt-conf", ["model=qwen3_5"])
+    cfg = load_cfg("cpt-conf", ["model=qwen3_5", "training_arguments.packing=true"])
     assert cfg.training_arguments.packing is True  # requested
     assert cfg.model.supports_packing is False
     training_args = build_training_args(cfg, SFTConfig)
@@ -91,7 +91,7 @@ def test_packing_forced_off_for_hybrid_models():
 
 
 def test_packing_kept_for_full_attention_models():
-    cfg = load_cfg("cpt-conf", ["model=qwen3"])
+    cfg = load_cfg("cpt-conf", ["model=qwen3", "training_arguments.packing=true"])
     training_args = build_training_args(cfg, SFTConfig)
     assert training_args.packing is True
 

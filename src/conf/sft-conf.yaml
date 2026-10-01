@@ -15,6 +15,9 @@ training_arguments:
   eval_accumulation_steps: 4
   packing: false
   max_length: 512
+  # TRL's default "chunked_nll" returns no logits, which breaks compute_metrics.
+  # "nll" is the same loss, just without the chunked memory saving.
+  loss_type: "nll"
   eval_strategy: "epoch"
   save_strategy: "epoch"
   save_only_model: true
